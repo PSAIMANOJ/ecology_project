@@ -119,7 +119,8 @@
                         
                         <div class="space-y-4">
                             <label for="infra-ids" class="block text-sm font-semibold text-slate-700">Infrastructure IDs (Comma Separated)</label>
-                            <input type="text" id="infra-ids" placeholder="e.g., 1, 16, 48, 51" class="w-full px-4 py-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-100 outline-none text-lg font-medium">
+                            <input type="text" id="infra-ids" placeholder="e.g., 1, 16, 48, 51" class="w-full px-4 py-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-100 outline-none text-lg font-medium transition-all">
+                            <p id="repetition-error" class="hidden text-xs text-rose-500 font-bold mt-1 uppercase tracking-tighter">⚠️ Repetition Error: One infrastructure can be chosen only one time.</p>
                             <p class="text-[10px] text-slate-400 italic">65 Total Elements available. Analysis unlocks navigation and linkages.</p>
                         </div>
 
@@ -207,7 +208,7 @@
                     </div>
 
                     <div class="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200">
-                        <h3 class="font-extrabold text-slate-800 mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">Active Mutualistic Linkages</h3>
+                        <h3 class="font-extrabold text-slate-800 mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">Active Strategic Linkages</h3>
                         <div id="linkages-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
                 </div>
@@ -223,7 +224,7 @@
                     </div>
                 </div>
 
-                <!-- Itemized Table for Dashboard -->
+                <!-- Itemized Table -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50 border-b">
@@ -245,7 +246,7 @@
             <div id="step-library" class="hidden fade-in space-y-6">
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
                     <div class="mb-8">
-                        <h2 class="text-3xl font-black text-slate-900 italic tracking-tight">Mutualistic Linkages Library</h2>
+                        <h2 class="text-3xl font-black text-slate-900 italic tracking-tight">Strategic Linkages Library</h2>
                         <p class="text-slate-500 text-sm">Strategic combinations identified for optimal city growth (+25 Bonus points each)</p>
                     </div>
                     <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -346,7 +347,6 @@
             if (!userName) return;
             const display = document.getElementById('display-player');
             if (display) display.innerText = userName;
-            
             document.getElementById('step-1').classList.add('hidden');
             document.getElementById('step-2').classList.remove('hidden');
         }
@@ -354,17 +354,14 @@
         function navigateTo(page) {
             const sidebar = document.getElementById('app-sidebar');
             if (!sidebar || !sidebar.classList.contains('visible')) return;
-
             const dash = document.getElementById('step-3');
             const lib = document.getElementById('step-library');
             const navDash = document.getElementById('nav-dashboard');
             const navLib = document.getElementById('nav-library');
-
             if (dash) dash.classList.add('hidden');
             if (lib) lib.classList.add('hidden');
             if (navDash) navDash.classList.remove('active');
             if (navLib) navLib.classList.remove('active');
-
             if (page === 'dashboard' && dash) {
                 dash.classList.remove('hidden');
                 if (navDash) navDash.classList.add('active');
@@ -404,7 +401,8 @@
             const step2 = document.getElementById('step-2');
             const step3 = document.getElementById('step-3');
             const stepLib = document.getElementById('step-library');
-
+            const errorEl = document.getElementById('repetition-error');
+            const inputField = document.getElementById('infra-ids');
             if (sidebar) sidebar.classList.remove('visible');
             if (main) main.classList.remove('pushed');
             if (inputCont) inputCont.classList.remove('hidden');
@@ -412,28 +410,35 @@
             if (step2) step2.classList.add('hidden');
             if (step3) step3.classList.add('hidden');
             if (stepLib) stepLib.classList.add('hidden');
-            
-            const inputField = document.getElementById('infra-ids');
-            if (inputField) inputField.value = '';
+            if (errorEl) errorEl.classList.add('hidden');
+            if (inputField) {
+                inputField.value = '';
+                inputField.classList.remove('border-rose-500', 'ring-rose-100');
+            }
         }
 
         function calculateScore() {
             const inputEl = document.getElementById('infra-ids');
+            const errorEl = document.getElementById('repetition-error');
             if (!inputEl) return;
-            
             const val = inputEl.value;
             const ids = val.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
             if (ids.length === 0) return;
-
+            const uniqueIds = new Set(ids);
+            if (uniqueIds.size !== ids.length) {
+                if (errorEl) errorEl.classList.remove('hidden');
+                inputEl.classList.add('border-rose-500', 'ring-rose-100');
+                return;
+            } else {
+                if (errorEl) errorEl.classList.add('hidden');
+                inputEl.classList.remove('border-rose-500', 'ring-rose-100');
+            }
             let sumEnv = 0, sumEco = 0, sumSoc = 0;
             const rows = document.getElementById('dashboard-rows');
             if (rows) rows.innerHTML = '';
-
             const items = ids.map(id => masterData.find(d => d.id === id)).filter(Boolean);
             if (items.length === 0) return;
-
             const selectedNames = items.map(i => i.name);
-
             items.forEach(item => {
                 const net = item.env + item.eco + item.soc;
                 sumEnv += item.env; sumEco += item.eco; sumSoc += item.soc;
@@ -444,11 +449,9 @@
                     rows.appendChild(tr);
                 }
             });
-
             let bonus = 0;
             const linkDiv = document.getElementById('linkages-container');
             if (linkDiv) linkDiv.innerHTML = '';
-            
             linkages.forEach(l => {
                 const hasAll = l.parts.every(p => selectedNames.some(n => n.toLowerCase().includes(p.toLowerCase())));
                 if (hasAll) {
@@ -456,14 +459,12 @@
                     if (linkDiv) {
                         const card = document.createElement('div');
                         card.className = "linkage-card p-4 rounded-2xl shadow-sm border border-blue-200 bg-blue-50";
-                        card.innerHTML = `<div class="flex justify-between items-start mb-2"><span class="text-[9px] font-black text-blue-600 uppercase">Active</span><span class="bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full">+25</span></div><h4 class="font-bold text-slate-900 text-xs mb-1">${l.label}</h4><p class="text-[10px] text-slate-600 leading-tight">${l.benefit}</p>`;
+                        card.innerHTML = `<div class="flex justify-between items-start mb-2"><span class="text-[9px] font-black text-blue-600 uppercase">Active Linkage</span><span class="bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full">+25 Bonus</span></div><h4 class="font-bold text-slate-900 text-xs mb-1">${l.label}</h4><p class="text-[10px] text-slate-600 leading-tight">${l.benefit}</p>`;
                         linkDiv.appendChild(card);
                     }
                 }
             });
-
-            if (linkDiv && linkDiv.innerHTML === '') linkDiv.innerHTML = '<p class="text-sm text-slate-400 col-span-2 italic text-center p-4">No active linkages found.</p>';
-
+            if (linkDiv && linkDiv.innerHTML === '') linkDiv.innerHTML = '<p class="text-sm text-slate-400 col-span-2 italic text-center p-4">No active strategic linkages found.</p>';
             const rawTotal = sumEnv + sumEco + sumSoc;
             const totalWithBonus = rawTotal + bonus;
             const pEnv = rawTotal !== 0 ? (sumEnv / rawTotal) * 100 : 0;
@@ -471,45 +472,32 @@
             const pSoc = rawTotal !== 0 ? (sumSoc / rawTotal) * 100 : 0;
             const deviation = Math.abs(pEnv - 35) + Math.abs(pEco - 30) + Math.abs(pSoc - 35);
             const score = Math.max(0, 100 - (deviation / 1.4)).toFixed(0);
-
-            // Update UI safely
             const dashName = document.getElementById('dash-player-name');
             if (dashName) dashName.innerText = userName;
-            
             const finalRes = document.getElementById('final-result');
             if (finalRes) finalRes.innerText = totalWithBonus;
-            
             const tEnv = document.getElementById('total-env');
             if (tEnv) tEnv.innerText = sumEnv;
-            
             const tEco = document.getElementById('total-eco');
             if (tEco) tEco.innerText = sumEco;
-            
             const tSoc = document.getElementById('total-soc');
             if (tSoc) tSoc.innerText = sumSoc;
-            
             const alignScore = document.getElementById('alignment-score');
             if (alignScore) alignScore.innerText = score + "%";
-            
             const circle = document.getElementById('alignment-circle');
             if (circle) circle.style.strokeDashoffset = 364.4 - (score / 100) * 364.4;
-            
             const bonusNotif = document.getElementById('bonus-notif');
             if (bonusNotif) bonusNotif.classList.toggle('hidden', bonus === 0);
-
             updateBenchmark('eco', pEco, 30);
             updateBenchmark('soc', pSoc, 35);
             updateBenchmark('env', pEnv, 35);
-            generateBias(pEnv, pEco, pSoc, score);
-
-            // Show Sidebar and Transition
+            generateBias(pEnv, pEco, pSoc, score, bonus);
             const sidebar = document.getElementById('app-sidebar');
             const main = document.getElementById('main-container');
             const inputCont = document.getElementById('input-container');
             const step3 = document.getElementById('step-3');
             const navDash = document.getElementById('nav-dashboard');
             const navLib = document.getElementById('nav-library');
-
             if (sidebar) sidebar.classList.add('visible');
             if (main) main.classList.add('pushed');
             if (inputCont) inputCont.classList.add('hidden');
@@ -522,31 +510,28 @@
             const bar = document.getElementById(`bar-${key}-actual`);
             const label = document.getElementById(`diff-${key}`);
             if (!bar || !label) return;
-            
             const diff = actual - target;
             bar.style.width = actual + "%";
             label.innerText = (diff > 0 ? "+" : "") + diff.toFixed(1) + "%";
             label.className = "font-bold text-[9px] " + (Math.abs(diff) < 5 ? "text-emerald-500" : "text-rose-500");
         }
 
-        function generateBias(env, eco, soc, score) {
+        function generateBias(env, eco, soc, score, bonus) {
             const tag = document.getElementById('major-impact-tag');
             const analysis = document.getElementById('detailed-analysis');
             if (!tag || !analysis) return;
-            
             const diffs = [{n:'Environmentalist', v:env-35}, {n:'Industrial Expansionist', v:eco-30}, {n:'Social Architect', v:soc-35}];
             const best = diffs.sort((a,b)=>b.v-a.v)[0];
-            
-            // Updated threshold logic: only sustainable if score is 97% or higher
             const isSustainable = parseInt(score) >= 97;
-
             tag.innerText = isSustainable ? "Sustainable Visionary" : best.n;
             let html = `<p>City Audit for <strong>${userName}</strong>: Your alignment score is <strong>${score}%</strong>.</p>`;
-            
             if (isSustainable) {
                 html += `<p class="text-emerald-400">• <strong>Strategic Harmony:</strong> Your city has achieved the ideal balance between nature, growth, and society.</p>`;
             } else {
                 html += `<p class="text-amber-400">• <strong>Development Bias:</strong> Your city heavily favors <strong>${best.n}</strong>. This strategy yields high performance in those sectors but may lead to neglect in other critical urban needs.</p>`;
+            }
+            if (bonus > 0) {
+                html += `<p class="text-blue-400">• <strong>Linkage Advantage:</strong> You have unlocked ${bonus/25} Strategic Linkages, optimizing your urban network efficiency.</p>`;
             }
             analysis.innerHTML = html;
         }
