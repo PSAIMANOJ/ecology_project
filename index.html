@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Infrastructure Ecology Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -73,8 +74,8 @@
             border-color: #10b981;
         }
         
-        .score-bar { height: 6px; border-radius: 3px; background: #f1f5f9; position: relative; overflow: hidden; }
-        .score-bar-fill { height: 100%; position: absolute; left: 0; top: 0; transition: width 1s ease-out; }
+        .score-bar { height: 8px; border-radius: 4px; background: #f1f5f9; position: relative; overflow: hidden; }
+        .score-bar-fill { height: 100%; position: absolute; left: 0; top: 0; transition: all 1s ease-out; }
         
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
@@ -164,8 +165,7 @@
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-black italic tracking-tighter uppercase leading-none text-white">Eco-Scale</h2>
-                    <p class="text-[9px] text-emerald-400 font-bold tracking-widest mt-1 uppercase">Planner Pro</p>
+                    <h2 class="text-2xl font-black italic tracking-tighter uppercase leading-none text-white">ECO-SCALE</h2>
                 </div>
             </div>
             <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white">
@@ -203,7 +203,7 @@
                     <div class="inline-flex p-5 bg-white rounded-3xl shadow-xl shadow-emerald-500/10 border border-emerald-50 mb-6">
                         <svg class="w-10 h-10 md:w-14 md:h-14 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     </div>
-                    <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight">Ecology <br/><span class="text-emerald-500">Scoreboard</span></h1>
+                    <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight uppercase">ECO-SCALE</h1>
                     <p class="text-slate-400 mt-4 font-bold uppercase tracking-[0.2em] text-[10px]">Urban Strategic Simulator</p>
                 </header>
 
@@ -221,23 +221,22 @@
                 </main>
             </div>
 
-            <!-- Phase 2: Workspace (Add IDs one by one) -->
+            <!-- Phase 2: Workspace -->
             <div id="step-2" class="hidden fade-in space-y-6">
                 <div class="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-200 relative overflow-hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
                         <div>
                             <p class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-1">Grid System v2.0</p>
-                            <h2 class="text-2xl md:text-4xl font-black text-slate-900">Build Your City, <span id="display-player" class="text-emerald-500"></span></h2>
+                            <h2 class="text-2xl md:text-4xl font-black text-slate-900 leading-tight">Building City: <span id="display-player" class="text-emerald-500"></span></h2>
                         </div>
                         <div class="flex flex-row gap-4 w-full md:w-auto">
-                            <input type="number" id="infra-id-input" placeholder="ID (1-65)" 
+                            <input type="number" id="infra-id-input" placeholder="ID" 
                                    class="px-4 py-3 md:px-6 md:py-5 rounded-2xl border-2 border-slate-100 focus:border-emerald-500 outline-none font-black text-xl md:text-2xl w-24 md:w-36 shadow-inner bg-slate-50">
                             <button onclick="addInfrastructure()" class="flex-1 bg-emerald-600 text-white px-6 md:px-10 py-3 md:py-5 rounded-2xl font-black text-sm md:text-lg hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20 active:scale-95">ADD ASSET</button>
                         </div>
                     </div>
 
                     <div id="repetition-error" class="hidden text-center mb-6 bg-rose-50 p-4 rounded-2xl border border-rose-100 text-rose-600 text-xs font-black uppercase tracking-widest">⚠️ Asset Redundancy Detected: Component already in grid.</div>
-                    <div id="invalid-error" class="hidden text-center mb-6 bg-rose-50 p-4 rounded-2xl border border-rose-100 text-rose-600 text-xs font-black uppercase tracking-widest">⚠️ Invalid Index: ID must be between 1 and 65.</div>
 
                     <div class="overflow-x-auto custom-scrollbar -mx-6 px-6 md:mx-0 md:px-2">
                         <table class="w-full text-left border-separate border-spacing-y-4 min-w-[600px]">
@@ -270,11 +269,10 @@
 
             <!-- Phase 3: Dashboard View -->
             <div id="step-3" class="hidden fade-in space-y-8">
-                <!-- Header and Gauge -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 flex flex-col justify-center bg-white p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-200">
                         <p class="text-xs font-black text-emerald-500 uppercase tracking-widest mb-2">Analysis Phase: Complete</p>
-                        <h2 class="text-3xl md:text-5xl font-black text-slate-900 leading-none mb-6">Strategic Audit</h2>
+                        <h2 class="text-3xl md:text-5xl font-black text-slate-900 leading-none mb-6 uppercase">Strategic Audit</h2>
                         <p class="text-slate-400 text-sm md:text-base leading-relaxed max-w-lg mb-8">Performance report for planner <strong class="text-slate-700 italic"><span id="dash-player-name"></span></strong>. Alignment is benchmarked against the sustainable 35-30-35 distribution logic.</p>
                         
                         <div class="pt-8 border-t border-slate-100">
@@ -297,12 +295,54 @@
                     </div>
                 </div>
 
-                <!-- Scores -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Synergy and Deviation Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Variance Audit -->
+                    <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
+                        <h3 class="font-black text-slate-900 mb-10 text-[11px] uppercase tracking-[0.3em] text-center border-b pb-6">Variance Audit</h3>
+                        <div class="space-y-10">
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-[11px] font-black">
+                                    <span class="text-amber-500 uppercase">ECONOMY (Ideal 30%)</span>
+                                    <span id="diff-eco" class="font-mono text-xs"></span>
+                                </div>
+                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden">
+                                    <div id="bar-eco-actual" class="h-full bg-amber-400 transition-all duration-1000 shadow-inner"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-[11px] font-black">
+                                    <span class="text-indigo-500 uppercase">SOCIAL (Ideal 35%)</span>
+                                    <span id="diff-soc" class="font-mono text-xs"></span>
+                                </div>
+                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden">
+                                    <div id="bar-soc-actual" class="h-full bg-indigo-400 transition-all duration-1000 shadow-inner"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-[11px] font-black">
+                                    <span class="text-emerald-500 uppercase">ECOLOGICAL (Ideal 35%)</span>
+                                    <span id="diff-env" class="font-mono text-xs"></span>
+                                </div>
+                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden">
+                                    <div id="bar-env-actual" class="h-full bg-emerald-400 transition-all duration-1000 shadow-inner"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Linkages -->
+                    <div class="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-200">
+                        <h3 class="font-black text-slate-900 mb-6 text-[11px] uppercase tracking-[0.3em] border-b pb-6">Activated Linkages (+25 ea)</h3>
+                        <div id="active-linkages-container" class="grid grid-cols-1 gap-4 max-h-[350px] overflow-y-auto custom-scrollbar pr-2"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
                     <div class="metric-card p-6 md:p-10 rounded-[2rem] border-b-8 border-slate-900 text-center">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Net Valuation</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Final Valuation</p>
                         <div id="final-result" class="text-4xl md:text-5xl font-black text-slate-900 text-center">0</div>
-                        <p id="bonus-notif" class="text-[9px] text-emerald-600 font-black hidden mt-4 bg-emerald-50 py-1 px-3 rounded-full inline-block text-center">STRATEGIC BONUS APPLIED</p>
+                        <p id="bonus-notif" class="text-[9px] text-emerald-600 font-black hidden mt-4 bg-emerald-50 py-1 px-3 rounded-full inline-block text-center">BONUS APPLIED</p>
                     </div>
                     <div class="metric-card p-6 md:p-10 rounded-[2rem] border-b-8 border-emerald-500 text-center">
                         <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2 text-center">Environment</p>
@@ -318,20 +358,18 @@
                     </div>
                 </div>
 
-                <!-- Review Section -->
                 <div class="bg-slate-900 p-8 md:p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
-                    <h3 class="font-black text-2xl mb-8 text-emerald-400 tracking-tighter uppercase">Comprehensive Review</h3>
+                    <h3 class="font-black text-2xl mb-8 text-emerald-400 tracking-tighter uppercase">Audit Review</h3>
                     <div id="detailed-analysis" class="space-y-8 text-slate-300 font-medium leading-relaxed text-sm md:text-lg"></div>
                     <div class="mt-12 pt-10 border-t border-slate-800">
-                        <p class="text-[10px] font-black text-slate-600 uppercase mb-3 tracking-[0.4em]">Development DNA</p>
+                        <p class="text-[10px] font-black text-slate-600 uppercase mb-3 tracking-[0.4em]">Development profile</p>
                         <p id="major-impact-tag" class="text-2xl md:text-4xl font-black uppercase text-white tracking-tighter italic">Analyzing...</p>
                     </div>
                 </div>
 
-                <!-- Detailed Breakdown Table -->
                 <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
                     <div class="px-8 py-6 bg-slate-50 border-b border-slate-100">
-                        <h3 class="font-black text-slate-800 text-xs uppercase tracking-widest">Itemized Valuation</h3>
+                        <h3 class="font-black text-slate-800 text-xs uppercase tracking-widest">Full City Ledger</h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left min-w-[700px]">
@@ -351,31 +389,30 @@
                 </div>
             </div>
 
-            <!-- Library View: Strategic Linkages -->
+            <!-- Library View -->
             <div id="step-library" class="hidden fade-in space-y-6">
                 <div class="bg-white p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-200">
                     <div class="mb-12 border-b pb-10">
-                        <h2 class="text-3xl md:text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4">Strategic Pairings</h2>
-                        <p class="text-slate-400 font-medium text-sm md:text-lg">Cross-pillar combinations that multiply net city valuation.</p>
+                        <h2 class="text-3xl md:text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4 uppercase">Linkages Catalog</h2>
+                        <p class="text-slate-400 font-medium text-sm md:text-lg">Full index of synergistic urban asset combinations.</p>
                     </div>
                     <div id="library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[65vh] overflow-y-auto custom-scrollbar pr-2 md:pr-6 pb-12"></div>
                 </div>
             </div>
 
-            <!-- Infrastructure Library View -->
+            <!-- Infra Library View -->
             <div id="step-infra-library" class="hidden fade-in space-y-6 px-4">
                 <div class="bg-white p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-12 border-b pb-10">
                         <div>
-                            <h2 class="text-3xl md:text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4">Master Database</h2>
-                            <p class="text-slate-400 font-medium text-sm md:text-lg">Click any card to view detailed justifications.</p>
+                            <h2 class="text-3xl md:text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4 uppercase">Asset Index</h2>
+                            <p class="text-slate-400 font-medium text-sm md:text-lg">Examine individual performance justifications.</p>
                         </div>
                         <div class="flex flex-col sm:flex-row gap-6 w-full md:w-auto">
                             <input type="text" id="infra-search" onkeyup="filterInfraLibrary()" placeholder="Filter components..." 
                                    class="px-6 py-4 rounded-[1.5rem] border-2 border-slate-100 bg-slate-50 focus:bg-white focus:ring-8 focus:ring-emerald-50 focus:border-emerald-500 outline-none text-base font-bold shadow-sm sm:w-64 transition-all">
                         </div>
                     </div>
-                    
                     <div id="infra-library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 md:pr-6 pb-12"></div>
                 </div>
             </div>
@@ -384,7 +421,6 @@
     </div>
 
     <script>
-        // Data containing all 65 elements and their justifications
         const masterData = [
             { id: 1, name: "Rooftop Solar and Solar Farms", env: 75, eco: 60, soc: 55, envReason: "Generates clean energy with zero operational emissions and minimal land disruption especially on rooftops", ecoReason: "High return through energy savings, grid selling revenue and large scale job creation in installation and maintenance", socReason: "Reduces household energy bills, improves air quality and gives communities energy independence" },
             { id: 2, name: "River Restoration Projects", env: 85, eco: 35, soc: 65, envReason: "Rebuilds entire ecosystems, purifies water naturally, prevents floods and restores aquatic biodiversity at scale", ecoReason: "Boosts tourism, supports fishing industries and dramatically cuts future flood damage and repair costs", socReason: "Clean rivers provide recreation, improve neighbourhood aesthetics and directly protect public health" },
@@ -401,56 +437,56 @@
             { id: 13, name: "Carbon Capture Facilities", env: 70, eco: -20, soc: 30, envReason: "Directly removes CO2 from the atmosphere delivering strong environmental benefit especially near industrial zones", ecoReason: "Very high construction and operating costs with limited direct revenue streams make it economically negative near term", socReason: "Communities benefit from cleaner air but facilities are expensive, space consuming and invisible to daily life" },
             { id: 14, name: "Carbon Tax System", env: 60, eco: -30, soc: -20, envReason: "Effectively discourages emissions and drives industries toward cleaner practices through financial penalty mechanisms", ecoReason: "Businesses face higher operating costs and may reduce investment or relocate causing short term economic contraction", socReason: "Increased cost of goods and energy hits lower income groups hardest without proper rebate or relief systems in place" },
             { id: 15, name: "Mining", env: -85, eco: 75, soc: -15, envReason: "Causes deforestation, soil erosion, water contamination and severe habitat destruction across large land areas", ecoReason: "High economic value through raw material extraction feeding construction, manufacturing and technology sectors", socReason: "Health hazards for nearby communities, population displacement and long term land degradation outweigh job creation gains" },
-            { id: 16, name: "Renewable Energy Farms", env: 80, eco: 55, soc: 45, envReason: "Generates clean electricity with zero operational emissions, reduces fossil fuel dependence, and has minimal long-term ecological footprint beyond land use", ecoReason: "Creates thousands of jobs in installation, maintenance, and operations while reducing national energy import costs and boosting energy independence", socReason: "Improves air quality citywide, lowers household energy costs over time, and provides stable power to communities reducing outages" },
-            { id: 17, name: "Public Transport", env: 55, eco: 45, soc: 80, envReason: "Significantly cuts private vehicle usage, reducing carbon emissions, traffic congestion, and urban air pollution across the city", ecoReason: "Reduces per-capita commute costs, generates fare revenue, and lowers road maintenance expenses by reducing vehicle load", socReason: "Provides affordable mobility to all income groups, reduces commute stress, improves accessibility for elderly and differently abled citizens" },
-            { id: 18, name: "Water Management", env: 60, eco: 40, soc: 70, envReason: "Controls flooding, prevents waterway pollution, enables water recycling, and maintains healthy groundwater levels for ecosystems", ecoReason: "Reduces costs from flood damage, water loss, and infrastructure repair while enabling water reuse for agriculture and industry", socReason: "Prevents waterborne disease, ensures reliable clean water access, protects homes from flood damage, and improves neighbourhood sanitation" },
-            { id: 19, name: "EV Charging Infrastructure", env: 65, eco: 40, soc: 55, envReason: "Enables mass transition from fossil fuel vehicles to electric, directly cutting transport sector carbon emissions and urban air pollution", ecoReason: "Attracts EV-related businesses, generates electricity revenue, reduces fuel import dependency, and creates installation and maintenance jobs", socReason: "Makes EV adoption accessible to more residents, reduces noise and air pollution in cities, and supports greener daily commuting habits" },
-            { id: 20, name: "Railway Stations", env: 30, eco: 50, soc: 70, envReason: "Shifts passenger load from road to rail, significantly cutting per-journey carbon emissions and reducing highway congestion", ecoReason: "Boosts local commercial activity around stations, supports property value growth, and enables efficient long-distance freight and passenger movement", socReason: "Provides affordable, reliable, and safe mass transit, connects distant communities, and reduces commute time for working populations" },
-            { id: 21, name: "Composting + Biomethanation", env: 70, eco: 30, soc: 40, envReason: "Converts organic waste into compost and biogas with near-zero emissions, diverts waste from landfills, and returns nutrients to soil naturally", ecoReason: "Generates revenue through compost product sales and biogas energy, reduces municipal landfill costs, and lowers waste transport expenses", socReason: "Reduces landfill odour and pollution in communities, supports urban farming with compost output, and creates local green collar employment" },
-            { id: 22, name: "Decentralised Waste Processing", env: 55, eco: 30, soc: 45, envReason: "Reduces landfill dependency, cuts waste transport emissions by processing locally, and prevents soil and groundwater contamination from accumulated waste", ecoReason: "Lowers waste logistics costs, recovers recyclable materials for resale, and generates local employment in waste sorting and processing operations", socReason: "Keeps neighbourhoods cleaner, reduces disease risk from waste accumulation, and gives communities direct control over local waste impact" },
-            { id: 23, name: "Cold Storage (Food Waste)", env: 40, eco: 35, soc: 50, envReason: "Reduces methane emissions from food rotting in landfills, lowers agricultural pressure by making existing food supply go further", ecoReason: "Reduces losses across the food supply chain, lowers costs for retailers and distributors, and improves efficiency of agricultural investment", socReason: "Improves food security and affordability for city residents, reduces hunger risk, and supports more equitable food distribution across communities" },
-            { id: 24, name: "Grid Infrastructure", env: -10, eco: 70, soc: 60, envReason: "Minor environmental cost from transmission line land use and energy losses during distribution, but enables cleaner energy delivery at scale", ecoReason: "Foundational economic enabler — every business, industry, and household depends on reliable grid connectivity for productivity and growth", socReason: "Electricity access is fundamental to modern life, powering homes, hospitals, schools, and emergency services across the entire city" },
-            { id: 25, name: "Water Supply", env: -15, eco: 50, soc: 85, envReason: "Slight environmental cost from groundwater extraction and chemical treatment processes, but essential for preventing worse public health outcomes", ecoReason: "Supports all economic activity from households to heavy industry, enables agriculture, and generates steady utility revenue for the city", socReason: "Clean water access is a basic human right — directly prevents waterborne disease, supports hygiene, and is critical to public health and dignity" },
-            { id: 26, name: "Waste-to-Energy Plant", env: 20, eco: 50, soc: 30, envReason: "Diverts waste from landfills reducing methane, but combustion releases particulates and CO2 requiring careful emission controls to limit air impact", ecoReason: "Generates sellable electricity and collects tipping fees from waste operators, providing dual revenue streams from what was previously a cost burden", socReason: "Reduces visible waste in the city but communities near plants raise valid concerns about air quality, odour, and long-term health implications" },
-            { id: 27, name: "Business Parks", env: -20, eco: 70, soc: 50, envReason: "Moderate land use and increased commuter traffic generate some pollution and habitat loss on the urban fringe", ecoReason: "Strong job creation hub, attracts corporate investment, generates commercial tax revenue, and anchors professional sector growth in the city", socReason: "Provides concentrated employment opportunities, reduces long commutes for office workers, and supports surrounding retail and service businesses" },
-            { id: 28, name: "Power Supply (Grid)", env: -25, eco: 65, soc: 55, envReason: "Conventional fossil fuel power generation produces moderate CO2 and particulate emissions, contributing to urban air pollution and climate impact", ecoReason: "Absolutely essential economic infrastructure — without reliable power supply no industry, commerce, or service sector can operate effectively", socReason: "Reliable electricity directly improves living standards, powers healthcare and education facilities, and is critical for safety and daily convenience" },
-            { id: 29, name: "Shopping Malls", env: -45, eco: 65, soc: 50, envReason: "High energy consumption for lighting and cooling, large impervious surface areas causing runoff, and significant packaging and retail waste generation", ecoReason: "Major retail economic driver generating high tax revenue, thousands of direct and indirect jobs, and attracting consumer spending into the city", socReason: "Provides convenient retail and leisure access for residents but car-dependent design excludes those without vehicles and contributes to congestion" },
-            { id: 30, name: "Sea / Air Ports", env: -60, eco: 85, soc: 40, envReason: "Among the highest emission sources — ship and aircraft fuel combustion, coastal habitat disruption, noise pollution, and significant carbon footprint per journey", ecoReason: "Top economic performer — enables international trade, tourism, logistics, and supply chain connectivity that drives city-level and national economic growth", socReason: "Connects the city to global markets and destinations but surrounding communities suffer from persistent noise, air pollution, and heavy traffic" },
-            { id: 31, name: "Data Centres", env: -50, eco: 75, soc: 35, envReason: "Consume enormous amounts of electricity and water for cooling, generating significant indirect carbon emissions and straining local energy infrastructure", ecoReason: "Highly valuable in the digital economy, attracting tech investment, creating high-paying jobs, and generating substantial corporate tax revenue", socReason: "Benefits society indirectly through enabling digital services, cloud storage, and connectivity but has minimal visible positive impact on daily community life" },
-            { id: 32, name: "Industries", env: -70, eco: 80, soc: 40, envReason: "Heavy polluter — factory emissions, industrial effluents, land degradation, and hazardous waste significantly damage air, water, and soil quality", ecoReason: "Largest economic contributor through manufacturing output, mass employment, export earnings, and supply chain activity across multiple sectors", socReason: "Creates large-scale employment and drives urban development but surrounding communities face serious air and water quality degradation impacting health" },
-            { id: 33, name: "Construction Sites", env: -65, eco: 60, soc: 20, envReason: "Short-term but severe impact — dust, noise, land clearing, demolition waste, and machinery emissions cause significant localised environmental disruption", ecoReason: "Strong economic driver through real estate development, construction employment, materials supply chains, and long-term property value creation", socReason: "Highly disruptive to existing communities during active construction phase with noise and dust, though completed buildings eventually serve residents" },
-            { id: 34, name: "Fuel Supply (Pipelines)", env: -55, eco: 45, soc: 20, envReason: "High risk of leaks and spills causing soil and groundwater contamination, plus continuous fossil fuel transport perpetuates carbon-intensive energy systems", ecoReason: "Moderate economic value as a logistics enabler for fuel distribution to industries, power plants, and transport networks across the city", socReason: "Society depends on the fuel being delivered but gains little directly from the pipeline itself, with safety risk near communities keeping score low" },
-            { id: 35, name: "Oil & Gas Fields", env: -90, eco: 70, soc: -20, envReason: "Worst environmental performer — extraction causes severe habitat destruction, water contamination, methane leaks, and is a primary driver of long-term climate damage", ecoReason: "High short-term revenue through extraction royalties and fuel sales, but volatile global prices, finite reserves, and cleanup costs limit long-term value", socReason: "Only negative society score — health hazards near extraction sites, community displacement, chronic pollution exposure, and resource depletion harm future generations" },
-            { id: 36, name: "Affordable Housing Complexes", env: 35, eco: 85, soc: 95, envReason: "Compact affordable housing can reduce urban sprawl and commute emissions; poorly planned sprawl developments can do opposite.", ecoReason: "Reduces worker housing burden, improves labor participation, lowers turnover, increases access to city jobs. High housing costs reduce economic mobility.", socReason: "Stable housing strongly linked to better mental health, children’s education continuity, family stability, lower homelessness risk." },
-            { id: 37, name: "Government Hospitals", env: -20, eco: 75, soc: 95, envReason: "Hospitals are energy-intensive buildings and produce biomedical waste, but greener hospital design can reduce this.", ecoReason: "Healthier workforce means fewer sick days and higher productivity; untreated disease imposes large economic costs.", socReason: "Direct life-saving effect: emergency care, maternal care, surgery, epidemic response, mortality reduction." },
-            { id: 38, name: "Primary Health Care Clinics", env: -5, eco: 70, soc: 90, envReason: "Smaller footprint than tertiary hospitals; lower energy intensity per facility.", ecoReason: "Preventive care is cheaper than hospital treatment; vaccination and early diagnosis save future costs.", socReason: "Better rural/local access, maternal care, immunization, chronic disease management." },
-            { id: 39, name: "Mental Wellness Centers", env: 0, eco: 65, soc: 90, envReason: "Low direct environmental footprint.", ecoReason: "Depression/anxiety reduce productivity and increase absenteeism; treatment improves workforce output.", socReason: "Reduces suicide risk, addiction relapse, domestic stress, family breakdown, loneliness." },
-            { id: 40, name: "Government Schools", env: 10, eco: 85, soc: 95, envReason: "Moderate building/resource use; can be improved with green campuses.", ecoReason: "Education raises lifetime earnings, tax base, innovation capacity, GDP growth. Human capital is one of the strongest long-term economic drivers.", socReason: "Literacy, social mobility, reduced inequality, civic participation." },
-            { id: 41, name: "Universities & Colleges", env: 5, eco: 90, soc: 80, envReason: "Medium campus footprint; transit-oriented campuses reduce impacts.", ecoReason: "Innovation ecosystems: patents, startups, research grants, skilled labor pipelines. Strong correlation with knowledge-economy growth.", socReason: "Higher opportunity, mobility, advanced skills, social development." },
-            { id: 42, name: "Public Libraries", env: 10, eco: 55, soc: 70, envReason: "Low operating footprint compared to many civic facilities.", ecoReason: "Improves job search, digital inclusion, literacy, entrepreneurship support.", socReason: "Quiet public spaces, inclusive learning access, community trust, lifelong learning." },
-            { id: 43, name: "Skill Training Centers", env: 5, eco: 95, soc: 85, envReason: "Low-medium footprint.", ecoReason: "Strong direct employment effects by matching labor supply to industry demand.", socReason: "Reduces unemployment stress, youth disengagement, poverty traps." },
-            { id: 44, name: "Police Stations", env: -5, eco: 45, soc: 60, envReason: "Fleet fuel use + building energy.", ecoReason: "Lower theft and crime can protect commerce, insurance costs, business confidence.", socReason: "Safety gains, but score moderated by trust, fairness, misuse concerns." },
-            { id: 45, name: "Fire Stations & Ambulance Hubs", env: 0, eco: 60, soc: 85, envReason: "Vehicle fuel use, but resilience benefit offsets indirect losses.", ecoReason: "Prevent asset losses from fires/disasters; emergency response protects economic continuity.", socReason: "Saves lives in fires, crashes, disasters, cardiac emergencies." },
-            { id: 46, name: "Smart Street Lighting", env: 20, eco: 70, soc: 75, envReason: "LED smart systems reduce electricity use significantly vs legacy sodium lamps.", ecoReason: "Supports night economy, retail hours, safer commercial streets.", socReason: "Better perceived safety, especially for women, elderly, pedestrians." },
-            { id: 47, name: "CCTV Safety Network", env: -10, eco: 50, soc: 55, envReason: "Electronics lifecycle + energy use.", ecoReason: "Can reduce theft/vandalism in some zones; protects assets.", socReason: "Mixed effects: security gains vs privacy concerns and trust issues." },
-            { id: 48, name: "Safe Pedestrian Walkways", env: 70, eco: 80, soc: 80, envReason: "Replaces short car trips; lower emissions and congestion.", ecoReason: "Walkable commercial corridors increase footfall and local retail spending.", socReason: "Fewer pedestrian injuries, more physical activity, independence for children/elderly." },
-            { id: 49, name: "Public Transport Systems", env: 90, eco: 100, soc: 90, envReason: "Major reduction in car dependence and urban emissions when well used.", ecoReason: "One of the strongest urban productivity multipliers: labor mobility, lower congestion costs, land value uplift.", socReason: "Access to jobs, schools, hospitals; inclusion for low-income and non-drivers." },
-            { id: 50, name: "Women Safety Help Centers", env: 0, eco: 60, soc: 85, envReason: "Mostly neutral direct footprint.", ecoReason: "Higher female workforce participation when safety systems improve mobility confidence.", socReason: "Strong reporting, support, violence prevention, empowerment." },
-            { id: 51, name: "City Parks", env: 90, eco: 60, soc: 90, envReason: "Trees absorb carbon, reduce heat island effect, improve air quality, absorb stormwater, support biodiversity.", ecoReason: "Increase property values; attract vendors; lower healthcare burden; attract skilled workers.", socReason: "Lower stress, better mental health, family recreation, stronger social cohesion." },
-            { id: 52, name: "Pocket Parks", env: 80, eco: 40, soc: 75, envReason: "Shade, localized cooling, rain infiltration, biodiversity stepping stones.", ecoReason: "Raise local neighborhood attractiveness; support small retail; improve micro real-estate demand.", socReason: "Important in crowded cities; resting places for elderly; child play; stress relief." },
-            { id: 53, name: "Urban Forest Recreation Zones", env: 95, eco: 55, soc: 85, envReason: "Very high carbon sequestration, habitat creation, air filtration, noise buffering, stormwater management.", ecoReason: "Reduce cooling-energy demand; improve high-value residential desirability; eco-tourism spending.", socReason: "Quiet restorative spaces, recreation, lower anxiety, stronger community identity." },
-            { id: 54, name: "Riverfront / Lakeside Promenades", env: 75, eco: 80, soc: 80, envReason: "Bank stabilization, habitat restoration, runoff filtering, flood buffering.", ecoReason: "Waterfront regeneration often boosts land values, tourism, events, commercial leasing.", socReason: "Public gathering spaces, walking, recreation, civic pride, safer activated waterfronts." },
-            { id: 55, name: "Public Plazas & Open Spaces", env: 40, eco: 70, soc: 70, envReason: "Moderate if trees/permeable paving used; can worsen heat if concrete-only design.", ecoReason: "Markets, festivals, street vending, public events increase spending and local commerce.", socReason: "Social interaction, democratic gathering, cultural expression, festivals, identity-building." },
-            { id: 56, name: "Community Halls / Civic Centers", env: 5, eco: 50, soc: 75, envReason: "Low-medium operational footprint; can double as resilience assets.", ecoReason: "Rental revenue, weddings, seminars, local service economy, event jobs.", socReason: "Community bonding, clubs, senior programs, public meetings, disaster coordination." },
-            { id: 57, name: "Children’s Playgrounds", env: 20, eco: 45, soc: 80, envReason: "Small green/open-space benefit if landscaped.", ecoReason: "Family-friendly districts attract residents; supports nearby retail like cafés.", socReason: "Child physical development, social skills, outdoor activity, parent interaction." },
-            { id: 58, name: "Sports Complexes & Fitness Parks", env: 20, eco: 75, soc: 80, envReason: "Medium footprint due to lighting/water/land use; lower if efficient design.", ecoReason: "Memberships, jobs, sports events, tournaments, sponsorships, sports tourism.", socReason: "Fitness, youth engagement, discipline, crime diversion through sports participation." },
-            { id: 59, name: "Jogging & Cycling Tracks", env: 75, eco: 75, soc: 75, envReason: "Replaces short car trips, lowers emissions/noise, supports active city model.", ecoReason: "Low-cost transport option reduces fuel spending; boosts corridor retail foot traffic.", socReason: "Better cardiovascular health, lower stress, safe recreation, inclusive mobility." },
-            { id: 60, name: "Childcare / Daycare Centers", env: 0, eco: 90, soc: 90, envReason: "Neutral-low direct footprint.", ecoReason: "Enables parents to work, especially women; raises labor-force participation and household income.", socReason: "Child development, reduced family stress, early learning, work-life balance." },
-            { id: 61, name: "Old Age Care Homes", env: 0, eco: 45, soc: 75, envReason: "Medium footprint due to operations/healthcare needs.", ecoReason: "Creates care-sector jobs; supports medical supply and service ecosystem.", socReason: "Dignity, supervision, companionship, reduced elder neglect and caregiver burnout." },
-            { id: 62, name: "Disabled Access Centers", env: 10, eco: 70, soc: 90, envReason: "Low direct environmental footprint.", ecoReason: "Unlocks employment potential of disabled citizens; improves labor inclusion and productivity.", socReason: "Accessibility, independence, equality, dignity, service access." },
-            { id: 63, name: "Food Banks / Community Kitchens", env: -5, eco: 50, soc: 85, envReason: "Can reduce edible food waste when linked to recovery logistics/cold chain.", ecoReason: "Stabilizes vulnerable households so they remain economically active; reduces crisis costs.", socReason: "Food security, hunger reduction, community solidarity, emergency support." },
-            { id: 64, name: "Disaster Relief Shelters", env: 10, eco: 55, soc: 80, envReason: "Core climate-resilience infrastructure; can be multi-use centers.", ecoReason: "Avoids huge disaster losses, speeds recovery, reduces downtime for local economy.", socReason: "Life-saving refuge during floods/cyclones/earthquakes; protects vulnerable groups." },
-            { id: 65, name: "Citizen Help Centers", env: 0, eco: 60, soc: 70, envReason: "Mostly neutral; digital centers reduce travel/paper use.", ecoReason: "Faster permits, lower bureaucracy costs, easier business setup, higher efficiency.", socReason: "Better trust in government, grievance resolution, access to welfare schemes." }
+            { id: 16, name: "Renewable Energy Farms", env: 80, eco: 55, soc: 45, envReason: "Generates clean electricity with zero operational emissions, reduces fossil fuel dependence...", ecoReason: "National energy independence.", socReason: "Citywide air quality." },
+            { id: 17, name: "Public Transport", env: 55, eco: 45, soc: 80, envReason: "Significantly cuts private vehicle usage.", ecoReason: "Reduces per-capita commute costs.", socReason: "Provides affordable mobility." },
+            { id: 18, name: "Water Management", env: 60, eco: 40, soc: 70, envReason: "Controls flooding and water recycling.", ecoReason: "Reduces repair costs.", socReason: "Prevents waterborne disease." },
+            { id: 19, name: "EV Charging Infrastructure", env: 65, eco: 40, soc: 55, envReason: "Enables mass transition to electric.", ecoReason: "Attracts EV businesses.", socReason: "Supports green commuting." },
+            { id: 20, name: "Railway Stations", env: 30, eco: 50, soc: 70, envReason: "Shifts passenger load from road to rail.", ecoReason: "Station hub development.", socReason: "Safe, reliable mass transit." },
+            { id: 21, name: "Composting + Biomethanation", env: 70, eco: 30, soc: 40, envReason: "Converts organic waste to compost/gas.", ecoReason: "Generates product revenue.", socReason: "Reduces community odour." },
+            { id: 22, name: "Decentralised Waste Processing", env: 55, eco: 30, soc: 45, envReason: "Cuts transport emissions.", ecoReason: "Local sorting employment.", socReason: "Keeps streets clean." },
+            { id: 23, name: "Cold Storage (Food Waste)", env: 40, eco: 35, soc: 50, envReason: "Reduces methane in landfills.", ecoReason: "Supply chain efficiency.", socReason: "Improves food security." },
+            { id: 24, name: "Grid Infrastructure", env: -10, eco: 70, soc: 60, envReason: "Minor line land use cost.", ecoReason: "Foundational productivity.", socReason: "Modern power access." },
+            { id: 25, name: "Water Supply", env: -15, eco: 50, soc: 85, envReason: "Groundwater extraction cost.", ecoReason: "Agricultural enabler.", socReason: "Clean water human right." },
+            { id: 26, name: "Waste-to-Energy Plant", env: 20, eco: 50, soc: 30, envReason: "Particulate risk management.", ecoReason: "Dual revenue streams.", socReason: "Odour concerns." },
+            { id: 27, name: "Business Parks", env: -20, eco: 70, soc: 50, envReason: "Urban habitat loss.", ecoReason: "strong corporate anchor.", socReason: "OFFICE employment." },
+            { id: 28, name: "Power Supply (Grid)", env: -25, eco: 65, soc: 55, envReason: "Conventional generation CO2.", ecoReason: "Essential commerce base.", socReason: "Power for hospitals/schools." },
+            { id: 29, name: "Shopping Malls", env: -45, eco: 65, soc: 50, envReason: "Energy use cooling.", ecoReason: "City retail driver.", socReason: "Convenient shopping access." },
+            { id: 30, name: "Sea / Air Ports", env: -60, eco: 85, soc: 40, envReason: "High emission sources.", ecoReason: "Top economic engine.", socReason: "Global market connection." },
+            { id: 31, name: "Data Centres", env: -50, eco: 75, soc: 35, envReason: "Electricity cooling strain.", ecoReason: "Tech sector growth.", socReason: "Indirect digital service." },
+            { id: 32, name: "Industries", env: -70, eco: 80, soc: 40, envReason: "Heavy pollutant effluent.", ecoReason: "Manufacturing backbone.", socReason: "Mass jobs source." },
+            { id: 33, name: "Construction Sites", env: -65, eco: 60, soc: 20, envReason: "Short-term dust noise.", ecoReason: "Real estate development.", socReason: "Community disruption." },
+            { id: 34, name: "Fuel Supply (Pipelines)", env: -55, eco: 45, soc: 20, envReason: "Leak risk contamination.", ecoReason: "Distribution logistics hub.", socReason: "Dependence logic." },
+            { id: 35, name: "Oil & Gas Fields", env: -90, eco: 70, soc: -20, envReason: "Primary climate Damage.", ecoReason: "Extraction royalties.", socReason: "Resource harm." },
+            { id: 36, name: "Affordable Housing Complexes", env: 35, eco: 85, soc: 95, envReason: "sprawl commute drop.", ecoReason: "Labor force participation.", socReason: "Stability continuity." },
+            { id: 37, name: "Government Hospitals", env: -20, eco: 75, soc: 95, envReason: "Biomedical waste.", ecoReason: "UNTREATED DISEASE avoidance.", socReason: "Direct Life Saving." },
+            { id: 38, name: "Primary Health Care Clinics", env: -5, eco: 70, soc: 90, envReason: "Small footprint.", ecoReason: "Preventive care savings.", socReason: "Rural/local access." },
+            { id: 39, name: "Mental Wellness Centers", env: 0, eco: 65, soc: 90, envReason: "Low direct footprint.", ecoReason: "Absenteeism reduction.", socReason: "Reduced suicide risk." },
+            { id: 40, name: "Government Schools", env: 10, eco: 85, soc: 95, envReason: "Green campus base.", ecoReason: "Human capital factor.", socReason: "Social mobility base." },
+            { id: 41, name: "Universities & Colleges", env: 5, eco: 90, soc: 80, envReason: "Knowledge ecosystem.", ecoReason: "startup pipeline.", socReason: "Advanced mobility." },
+            { id: 42, name: "Public Libraries", env: 10, eco: 55, soc: 70, envReason: "Low operating load.", ecoReason: "Job search digital.", socReason: "Quiet learning space." },
+            { id: 43, name: "Skill Training Centers", env: 5, eco: 95, soc: 85, envReason: "Low-medium footprint.", ecoReason: "Direct employment effects.", socReason: "Poverty trap reduction." },
+            { id: 44, name: "Police Stations", env: -5, eco: 45, soc: 60, envReason: "Building fuel use.", ecoReason: "Protection of commerce.", socReason: "Safety perception." },
+            { id: 45, name: "Fire Stations & Ambulance Hubs", env: 0, eco: 60, soc: 85, envReason: "Vehicle fuel use.", ecoReason: "Crisis loss avoidance.", socReason: "Treatment chain speed." },
+            { id: 46, name: "Smart Street Lighting", env: 20, eco: 70, soc: 75, envReason: "LED efficiency drop.", ecoReason: "Night retail support.", socReason: "Perceived safety gain." },
+            { id: 47, name: "CCTV Safety Network", env: -10, eco: 50, soc: 55, envReason: "Lifecycle electronic.", ecoReason: "Zone theft drop.", socReason: "Trust concerns." },
+            { id: 48, name: "Safe Pedestrian Walkways", env: 70, eco: 80, soc: 80, envReason: "Cuts short car trips.", ecoReason: "Walkable corridors.", socReason: "Elderly independence." },
+            { id: 49, name: "Public Transport Systems", env: 90, eco: 100, soc: 90, envReason: "Major mass drop.", ecoReason: "Urban multiplier.", socReason: "Access non-drivers." },
+            { id: 50, name: "Women Safety Help Centers", env: 0, eco: 60, soc: 85, envReason: "Neutral footprint base.", ecoReason: "Mobility confidence workforce.", socReason: "Reporting empowerment." },
+            { id: 51, name: "City Parks", env: 90, eco: 60, soc: 90, envReason: "Carbon stormwater sink.", ecoReason: "Adjacent land uplift.", socReason: "Mental health exercise." },
+            { id: 52, name: "Pocket Parks", env: 80, eco: 40, soc: 75, envReason: "Shade local cooling.", ecoReason: "Micro real-estate demand.", socReason: "Resting elderly." },
+            { id: 53, name: "Urban Forest Recreation Zones", env: 95, eco: 55, soc: 85, envReason: "Habitat noise filtering.", ecoReason: "Reduced cooling energy.", socReason: "Anxiety reduction." },
+            { id: 54, name: "Riverfront / Lakeside Promenades", env: 75, eco: 80, soc: 80, envReason: "Bank stabilization.", ecoReason: "Restaurant tourism draw.", socReason: "Civic pride activated." },
+            { id: 55, name: "Public Plazas & Open Spaces", env: 40, eco: 70, soc: 70, envReason: "Permeable surface focus.", ecoReason: "markets and street vending.", socReason: "cultural gathering." },
+            { id: 56, name: "Community Halls / Civic Centers", env: 5, eco: 50, soc: 75, envReason: "Operational load neutral.", ecoReason: "Rental revenueSeminar.", socReason: "senior programs clubs." },
+            { id: 57, name: "Children’s Playgrounds", env: 20, eco: 45, soc: 80, envReason: "Small green benefit.", ecoReason: "Family district attraction.", socReason: "Physical social development." },
+            { id: 58, name: "Sports Complexes & Fitness Parks", env: 20, eco: 75, soc: 80, envReason: "Footprint Lighting efficiency.", ecoReason: "Tourism and memberships.", socReason: "Youth crime diversion." },
+            { id: 59, name: "Jogging & Cycling Tracks", env: 75, eco: 75, soc: 75, envReason: "Lower noise emissions.", ecoReason: "Retail foot traffic multiplier.", socReason: "safe mobility inclusive." },
+            { id: 60, name: "Childcare / Daycare Centers", env: 0, eco: 90, soc: 90, envReason: "Neutral footprint.", ecoReason: "Returns parents to work.", socReason: "Work-life balance." },
+            { id: 61, name: "Old Age Care Homes", env: 0, eco: 45, soc: 75, envReason: "Footprint healthcare operational.", ecoReason: "Care sector job creation.", socReason: "reduced neglect companion." },
+            { id: 62, name: "Disabled Access Centers", env: 10, eco: 70, soc: 90, envReason: "Low direct building impact.", ecoReason: "inclusion labor potential.", socReason: "Independence equality base." },
+            { id: 63, name: "Food Banks / Community Kitchens", env: -5, eco: 50, soc: 85, envReason: "waste recovery logistics.", ecoReason: "Household stabilization.", socReason: "Hunger reduction solidarity." },
+            { id: 64, name: "Disaster Relief Shelters", env: 10, eco: 55, soc: 80, envReason: "Climate resilience core.", ecoReason: "disaster loss avoidance.", socReason: "Protective life refuge." },
+            { id: 65, name: "Citizen Help Centers", env: 0, eco: 60, soc: 70, envReason: "Travel paper drop digital.", ecoReason: "Ease business setup.", socReason: "Better trust grievances." }
         ];
 
         const linkages = [
@@ -480,16 +516,13 @@
             { parts: ["Mining", "River Restoration Projects"], label: "Extractive Restoration", benefit: "Ecological restoration after extraction impacts" }
         ];
 
-        let userName = "";
         let selectedItems = [];
 
         function submitName() {
             const input = document.getElementById('user-name');
-            if (!input) return;
+            if (!input.value.trim()) return;
             userName = input.value.trim();
-            if (!userName) return;
-            const display = document.getElementById('display-player');
-            if (display) display.innerText = userName;
+            document.getElementById('display-player').innerText = userName;
             document.getElementById('step-1').classList.add('hidden');
             document.getElementById('step-2').classList.remove('hidden');
         }
@@ -499,47 +532,16 @@
             if (sidebar) sidebar.classList.toggle('visible');
         }
 
-        function showInfraDetail(id) {
-            const item = masterData.find(d => d.id === id);
-            if (!item) return;
-
-            document.getElementById('modal-id').innerText = item.id;
-            document.getElementById('modal-title').innerText = item.name;
-            document.getElementById('modal-env-reason').innerText = item.envReason || "Data pending analytical verification.";
-            document.getElementById('modal-eco-reason').innerText = item.ecoReason || "Data pending analytical verification.";
-            document.getElementById('modal-soc-reason').innerText = item.socReason || "Data pending analytical verification.";
-
-            const modal = document.getElementById('infra-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('infra-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = '';
-        }
-
         function addInfrastructure() {
             const input = document.getElementById('infra-id-input');
             const errorRep = document.getElementById('repetition-error');
-            const errorInv = document.getElementById('invalid-error');
-            if (!input || !errorRep || !errorInv) return;
-            
             const id = parseInt(input.value);
-            errorRep.classList.add('hidden');
-            errorInv.classList.add('hidden');
-            
-            if (isNaN(id) || id < 1 || id > 65) {
-                errorInv.classList.remove('hidden');
-                return;
-            }
+            if (isNaN(id) || id < 1 || id > 65) return;
             if (selectedItems.some(item => item.id === id)) {
                 errorRep.classList.remove('hidden');
                 return;
             }
+            errorRep.classList.add('hidden');
             const item = masterData.find(d => d.id === id);
             if (item) {
                 selectedItems.push(item);
@@ -552,16 +554,13 @@
         function updateWorkspaceTable() {
             const tbody = document.getElementById('workspace-rows');
             const emptyMsg = document.getElementById('empty-workspace-msg');
-            if (!tbody || !emptyMsg) return;
-            
             if (selectedItems.length > 0) emptyMsg.classList.add('hidden');
             else emptyMsg.classList.remove('hidden');
-            
             tbody.innerHTML = '';
             selectedItems.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                tr.className = "workspace-row bg-white rounded-2xl shadow-sm";
-                tr.innerHTML = `<td class="py-3 md:py-5 px-4 md:px-6 font-mono font-black text-slate-300 text-xs text-center">${item.id}</td><td class="py-3 md:py-5 px-4 md:px-6 font-black text-slate-800 text-sm">${item.name}</td><td class="py-3 md:py-5 px-4 md:px-6 text-center text-emerald-500 font-black">${item.env}</td><td class="py-3 md:py-5 px-4 md:px-6 text-center text-amber-500 font-black">${item.eco}</td><td class="py-3 md:py-5 px-4 md:px-6 text-center text-indigo-500 font-black">${item.soc}</td><td class="py-3 md:py-5 px-4 md:px-6 text-right font-black text-slate-900">${item.env + item.eco + item.soc}</td><td class="py-3 md:py-5 px-4 md:px-6 text-right"><button onclick="removeItem(${index})" class="p-2 text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>`;
+                tr.className = "workspace-row bg-white rounded-2xl shadow-sm border-b border-slate-50";
+                tr.innerHTML = `<td class="py-4 px-6 font-mono font-black text-slate-300 text-xs text-center">${item.id}</td><td class="py-4 px-6 font-black text-slate-800 text-sm">${item.name}</td><td class="py-4 px-6 text-center text-emerald-500 font-black">${item.env}</td><td class="py-4 px-6 text-center text-amber-500 font-black">${item.eco}</td><td class="py-4 px-6 text-center text-indigo-500 font-black">${item.soc}</td><td class="py-4 px-6 text-right font-black text-slate-900">${item.env + item.eco + item.soc}</td><td class="py-4 px-6 text-right"><button onclick="removeItem(${index})" class="p-2 text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -578,26 +577,25 @@
             const dashboardTableBody = document.getElementById('dashboard-rows');
             const idSummaryDiv = document.getElementById('selected-ids-summary');
             
-            if (dashboardTableBody) dashboardTableBody.innerHTML = '';
-            if (idSummaryDiv) idSummaryDiv.innerHTML = '';
+            dashboardTableBody.innerHTML = '';
+            idSummaryDiv.innerHTML = '';
 
             selectedItems.forEach(item => {
-                const net = item.env + item.eco + item.soc;
                 sumEnv += item.env; sumEco += item.eco; sumSoc += item.soc;
                 const badge = document.createElement('span');
                 badge.className = "px-3 py-1.5 md:px-4 md:py-2 bg-slate-900 text-white rounded-xl text-[10px] md:text-[11px] font-black tracking-tighter shadow-lg shadow-slate-200";
                 badge.innerText = item.id;
-                if (idSummaryDiv) idSummaryDiv.appendChild(badge);
+                idSummaryDiv.appendChild(badge);
                 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition-colors";
-                tr.innerHTML = `<td class="px-6 md:px-8 py-5 font-black text-slate-300 font-mono text-xs text-center">${item.id}</td><td class="px-6 md:px-8 py-5 font-black text-slate-800">${item.name}</td><td class="px-6 md:px-8 py-5 text-center text-emerald-600 font-black">${item.env}</td><td class="px-6 md:px-8 py-5 text-center text-amber-600 font-black">${item.eco}</td><td class="px-6 md:px-8 py-5 text-center text-indigo-600 font-black">${item.soc}</td><td class="px-6 md:px-8 py-5 text-right font-black text-slate-900">${net}</td>`;
-                if (dashboardTableBody) dashboardTableBody.appendChild(tr);
+                tr.innerHTML = `<td class="px-6 md:px-8 py-5 font-black text-slate-300 font-mono text-xs text-center">${item.id}</td><td class="px-6 md:px-8 py-5 font-black text-slate-800">${item.name}</td><td class="px-6 md:px-8 py-5 text-center text-emerald-600 font-black">${item.env}</td><td class="px-6 md:px-8 py-5 text-center text-amber-600 font-black">${item.eco}</td><td class="px-6 md:px-8 py-5 text-center text-indigo-600 font-black">${item.soc}</td><td class="px-6 md:px-8 py-5 text-right font-black text-slate-900">${item.env + item.eco + item.soc}</td>`;
+                dashboardTableBody.appendChild(tr);
             });
 
             let bonus = 0;
-            const activeLinkagesDiv = document.getElementById('active-linkages-container');
-            if (activeLinkagesDiv) activeLinkagesDiv.innerHTML = '';
+            const alCont = document.getElementById('active-linkages-container');
+            alCont.innerHTML = '';
             
             linkages.forEach(l => {
                 const hasAll = l.parts.every(p => selectedNames.some(n => n.toLowerCase().includes(p.toLowerCase())));
@@ -605,42 +603,52 @@
                     bonus += 25;
                     const card = document.createElement('div');
                     card.className = "p-6 rounded-[1.5rem] border-2 border-emerald-50 bg-emerald-50/20";
-                    card.innerHTML = `<div class="flex justify-between items-start mb-3"><span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Combination Found</span><span class="bg-emerald-600 text-white text-[10px] px-3 py-1 rounded-full">+25</span></div><h4 class="font-black text-slate-900 text-sm mb-2 leading-tight">${l.label}</h4><p class="text-[11px] text-slate-500 leading-relaxed italic">${l.benefit}</p>`;
-                    if (activeLinkagesDiv) activeLinkagesDiv.appendChild(card);
+                    card.innerHTML = `<div class="flex justify-between items-start mb-3"><span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Active Synergy</span><span class="bg-emerald-600 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-sm">+25</span></div><h4 class="font-black text-slate-900 text-sm mb-2 leading-tight">${l.label}</h4><p class="text-[11px] text-slate-500 leading-relaxed italic">${l.benefit}</p>`;
+                    alCont.appendChild(card);
                 }
             });
 
-            if (activeLinkagesDiv && activeLinkagesDiv.innerHTML === '') activeLinkagesDiv.innerHTML = '<p class="text-sm text-slate-400 col-span-2 italic text-center py-6 border-2 border-dashed border-slate-100 rounded-[1.5rem] w-full">No strategic linkages detected.</p>';
+            if (alCont.innerHTML === '') alCont.innerHTML = '<p class="text-sm text-slate-400 col-span-full italic text-center py-10 border-2 border-dashed border-slate-100 rounded-[1.5rem]">No strategic synergies detected in the layout.</p>';
 
             const rawTotal = sumEnv + sumEco + sumSoc;
             const totalWithBonus = rawTotal + bonus;
             const pEnv = rawTotal !== 0 ? (sumEnv / rawTotal) * 100 : 0;
             const pEco = rawTotal !== 0 ? (sumEco / rawTotal) * 100 : 0;
             const pSoc = rawTotal !== 0 ? (sumSoc / rawTotal) * 100 : 0;
-            const score = Math.max(0, 100 - ((Math.abs(pEnv - 35) + Math.abs(pEco - 30) + Math.abs(pSoc - 35)) / 1.4)).toFixed(0);
+            
+            const devEnv = pEnv - 35;
+            const devEco = pEco - 30;
+            const devSoc = pSoc - 35;
+            const score = Math.max(0, 100 - ((Math.abs(devEnv) + Math.abs(devEco) + Math.abs(devSoc)) / 1.4)).toFixed(0);
 
-            const dashName = document.getElementById('dash-player-name');
-            if (dashName) dashName.innerText = userName;
-            const finalRes = document.getElementById('final-result');
-            if (finalRes) finalRes.innerText = totalWithBonus;
-            const tEnv = document.getElementById('total-env');
-            if (tEnv) tEnv.innerText = sumEnv;
-            const tEco = document.getElementById('total-eco');
-            if (tEco) tEco.innerText = sumEco;
-            const tSoc = document.getElementById('total-soc');
-            if (tSoc) tSoc.innerText = sumSoc;
-            const alScore = document.getElementById('alignment-score');
-            if (alScore) alScore.innerText = score + "%";
+            document.getElementById('dash-player-name').innerText = userName;
+            document.getElementById('final-result').innerText = totalWithBonus;
+            document.getElementById('total-env').innerText = sumEnv;
+            document.getElementById('total-eco').innerText = sumEco;
+            document.getElementById('total-soc').innerText = sumSoc;
+            document.getElementById('alignment-score').innerText = score + "%";
             
             const circle = document.getElementById('alignment-circle');
-            if (circle) circle.style.strokeDashoffset = 552.9 - (score / 100) * 552.9;
+            if (circle) circle.style.strokeDashoffset = 464.7 - (score / 100) * 464.7;
             
             const bonusNotif = document.getElementById('bonus-notif');
             if (bonusNotif) bonusNotif.classList.toggle('hidden', bonus === 0);
 
-            updateBenchmark('eco', pEco, 30);
-            updateBenchmark('soc', pSoc, 35);
-            updateBenchmark('env', pEnv, 35);
+            // Update Variance Audit
+            const updateVar = (key, actual, target, dev) => {
+                const bar = document.getElementById(`bar-${key}-actual`);
+                const label = document.getElementById(`diff-${key}`);
+                if (bar && label) {
+                    bar.style.width = actual + "%";
+                    const sign = dev > 0 ? "+" : "";
+                    label.innerText = `${sign}${dev.toFixed(1)}%`;
+                    label.className = "font-black font-mono text-sm " + (Math.abs(dev) < 5 ? "text-emerald-500" : "text-rose-500");
+                }
+            };
+            updateVar('eco', pEco, 30, devEco);
+            updateVar('soc', pSoc, 35, devSoc);
+            updateVar('env', pEnv, 35, devEnv);
+
             generateBias(pEnv, pEco, pSoc, score, bonus);
             
             populateInfraLibraryGrid();
@@ -654,42 +662,40 @@
             document.getElementById('nav-dashboard').classList.add('active');
         }
 
-        function updateBenchmark(key, actual, target) {
-            const bar = document.getElementById(`bar-${key}-actual`);
-            const label = document.getElementById(`diff-${key}`);
-            if (!bar || !label) return;
-            const diff = actual - target;
-            bar.style.width = actual + "%";
-            label.innerText = (diff > 0 ? "+" : "") + diff.toFixed(1) + "%";
-            label.className = "font-black text-[10px] " + (Math.abs(diff) < 5 ? "text-emerald-500" : "text-rose-500");
-        }
-
         function generateBias(env, eco, soc, score, bonus) {
             const tag = document.getElementById('major-impact-tag');
             const analysis = document.getElementById('detailed-analysis');
             if (!tag || !analysis) return;
-            const diffs = [{n:'Environmentalist', v:env-35}, {n:'Industrial Expansionist', v:eco-30}, {n:'Social Architect', v:soc-35}];
+            const diffs = [{n:'Environmentalist Focus', v:env-35}, {n:'Industrialist Focus', v:eco-30}, {n:'Social Architect Focus', v:soc-35}];
             const best = diffs.sort((a,b)=>b.v-a.v)[0];
             const isSustainable = parseInt(score) >= 97;
             tag.innerText = isSustainable ? "Sustainable Visionary" : best.n;
-            let html = `<p>Comprehensive City Audit for <strong>${userName}</strong> identifies an alignment score of <strong>${score}%</strong>.</p>`;
-            if (isSustainable) html += `<p class="text-emerald-500 font-black">• <strong>Strategic Excellence:</strong> Your city has reached the pinnacle of harmony between nature, growth, and society.</p>`;
-            else html += `<p class="text-slate-500 italic">• <strong>Focus Profile:</strong> Your city profile heavily favors <strong>${best.n.split(' ')[0]}</strong> objectives. This results in high localized impact but potential long-term fragility in other sectors.</p>`;
-            if (bonus > 0) html += `<p class="text-emerald-500 font-bold">• <strong>Network Multiplier:</strong> You have unlocked ${bonus/25} Strategic Linkages, optimizing your urban connectivity points.</p>`;
+            let html = `<p class="text-xl">City audit identifies an alignment score of <strong>${score}%</strong>.</p>`;
+            if (isSustainable) html += `<p class="text-emerald-500 font-black font-bold">• Strategic Excellence: Your layout achieved the peak of perfect urban equilibrium.</p>`;
+            else html += `<p class="text-slate-400">• Focus Bias: Your model favors <strong>${best.n.split(' Focus')[0]}</strong> objectives, which may lead to neglect in other urban pillars.</p>`;
+            if (bonus > 0) html += `<p class="text-emerald-500 font-bold">• Network Advantage: You unlocked ${bonus/25} linkages, boosting connectivity points.</p>`;
             analysis.innerHTML = html;
         }
+
+        function showInfraDetail(id) {
+            const item = masterData.find(d => d.id === id);
+            if (!item) return;
+            document.getElementById('modal-id').innerText = item.id;
+            document.getElementById('modal-title').innerText = item.name;
+            document.getElementById('modal-env-reason').innerText = item.envReason || "N/A";
+            document.getElementById('modal-eco-reason').innerText = item.ecoReason || "N/A";
+            document.getElementById('modal-soc-reason').innerText = item.socReason || "N/A";
+            document.getElementById('infra-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() { document.getElementById('infra-modal').classList.add('hidden'); document.body.style.overflow = ''; }
 
         function navigateTo(page) {
             const views = ['step-3', 'step-library', 'step-infra-library'];
             const navs = ['nav-dashboard', 'nav-library', 'nav-infra-library'];
-            views.forEach(v => {
-                const el = document.getElementById(v);
-                if (el) el.classList.add('hidden');
-            });
-            navs.forEach(n => {
-                const el = document.getElementById(n);
-                if (el) el.classList.remove('active');
-            });
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            navs.forEach(n => document.getElementById(n).classList.remove('active'));
             if (page === 'dashboard') {
                 document.getElementById('step-3').classList.remove('hidden');
                 document.getElementById('nav-dashboard').classList.add('active');
@@ -700,10 +706,7 @@
                 document.getElementById('step-infra-library').classList.remove('hidden');
                 document.getElementById('nav-infra-library').classList.add('active');
             }
-            
-            if (window.innerWidth < 1024) {
-                toggleSidebar();
-            }
+            if (window.innerWidth < 1024) toggleSidebar();
         }
 
         function populateLibraryGrid() {
@@ -713,7 +716,7 @@
             linkages.forEach(l => {
                 const card = document.createElement('div');
                 card.className = "bg-slate-50 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border-2 border-transparent hover:border-emerald-500 hover:bg-white transition-all duration-500";
-                card.innerHTML = `<div class="flex justify-between items-start mb-6"><span class="bg-slate-900 text-white text-[9px] px-3 py-1.5 rounded-full font-black uppercase tracking-widest">Synergy Protocol</span><span class="text-emerald-600 font-black text-xs">+25 BONUS</span></div><h4 class="font-black text-slate-900 mb-3 text-lg leading-tight">${l.label}</h4><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-4">Required Assets:</p><p class="text-xs text-slate-700 leading-relaxed font-bold bg-emerald-50 p-4 rounded-2xl mb-6">${l.parts.join(' + ')}</p><p class="text-[11px] text-slate-400 italic border-t border-slate-100 pt-6 leading-relaxed">${l.benefit}</p>`;
+                card.innerHTML = `<div class="flex justify-between items-start mb-6"><span class="bg-slate-900 text-white text-[9px] px-3 py-1.5 rounded-full font-black uppercase tracking-widest">Synergy Protocol</span><span class="text-emerald-600 font-black text-xs">+25 BONUS</span></div><h4 class="font-black text-slate-900 mb-3 text-lg leading-tight">${l.label}</h4><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-4">Required Assets:</p><p class="text-xs text-slate-700 font-bold bg-emerald-50 p-4 rounded-2xl mb-6">${l.parts.join(' + ')}</p><p class="text-[11px] text-slate-400 italic border-t border-slate-100 pt-6 leading-relaxed">${l.benefit}</p>`;
                 grid.appendChild(card);
             });
         }
@@ -729,21 +732,12 @@
                 card.innerHTML = `
                     <div class="flex items-start gap-4 mb-6">
                         <span class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-slate-900 text-white text-sm font-black rounded-2xl shrink-0 shadow-lg shadow-slate-200">${item.id}</span>
-                        <h4 class="text-sm md:text-base font-black text-slate-800 leading-tight pt-1">${item.name}</h4>
+                        <h4 class="text-sm md:text-base font-black text-slate-800 leading-tight pt-1 uppercase">${item.name}</h4>
                     </div>
                     <div class="space-y-4">
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[9px] font-black uppercase text-emerald-500 tracking-widest"><span>Environmental</span><span>${item.env}</span></div>
-                            <div class="score-bar"><div class="score-bar-fill bg-emerald-400" style="width: ${Math.max(0, item.env)}%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[9px] font-black uppercase text-amber-500 tracking-widest"><span>Economic</span><span>${item.eco}</span></div>
-                            <div class="score-bar"><div class="score-bar-fill bg-amber-400" style="width: ${Math.max(0, item.eco)}%"></div></div>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[9px] font-black uppercase text-indigo-500 tracking-widest"><span>Social Impact</span><span>${item.soc}</span></div>
-                            <div class="score-bar"><div class="score-bar-fill bg-indigo-400" style="width: ${Math.max(0, item.soc)}%"></div></div>
-                        </div>
+                        <div class="space-y-1"><div class="flex justify-between text-[9px] font-black uppercase text-emerald-500"><span>Environmental</span><span>${item.env}</span></div><div class="score-bar"><div class="score-bar-fill bg-emerald-400" style="width: ${Math.max(0, item.env)}%"></div></div></div>
+                        <div class="space-y-1"><div class="flex justify-between text-[9px] font-black uppercase text-amber-500"><span>Economic</span><span>${item.eco}</span></div><div class="score-bar"><div class="score-bar-fill bg-amber-400" style="width: ${Math.max(0, item.eco)}%"></div></div></div>
+                        <div class="space-y-1"><div class="flex justify-between text-[9px] font-black uppercase text-indigo-500"><span>Social Impact</span><span>${item.soc}</span></div><div class="score-bar"><div class="score-bar-fill bg-indigo-400" style="width: ${Math.max(0, item.soc)}%"></div></div></div>
                     </div>
                     <p class="mt-4 text-[9px] text-slate-300 font-bold uppercase tracking-widest text-center">Click for Justification</p>
                 `;
@@ -761,36 +755,8 @@
             populateInfraLibraryGrid(filtered);
         }
 
-        function sortInfraLibrary() {
-            const sortEl = document.getElementById('infra-sort');
-            if (!sortEl) return;
-            const key = sortEl.value;
-            const sorted = [...masterData].sort((a, b) => {
-                if (key === 'id') return a.id - b.id;
-                return b[key] - a[key];
-            });
-            populateInfraLibraryGrid(sorted);
-        }
-
         function reset() {
-            const sidebar = document.getElementById('app-sidebar');
-            const main = document.getElementById('main-container');
-            const toggle = document.getElementById('mobile-toggle');
-            if (sidebar) sidebar.classList.remove('visible');
-            if (main) main.classList.remove('pushed');
-            if (toggle) toggle.classList.remove('active');
-            
-            document.getElementById('step-3').classList.add('hidden');
-            document.getElementById('step-library').classList.add('hidden');
-            document.getElementById('step-infra-library').classList.add('hidden');
-            document.getElementById('step-2').classList.add('hidden');
-            document.getElementById('step-1').classList.remove('hidden');
-            selectedItems = [];
-            updateWorkspaceTable();
-            const un = document.getElementById('user-name');
-            if (un) un.value = "";
-            const ii = document.getElementById('infra-id-input');
-            if (ii) ii.value = "";
+            location.reload();
         }
     </script>
 </body>
