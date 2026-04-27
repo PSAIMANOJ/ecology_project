@@ -7,11 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        :root {
+            --env-color: #10b981;
+            --eco-color: #f59e0b;
+            --soc-color: #6366f1;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            overflow-x: hidden;
+            /* Creative Tree Watermark Pattern */
+            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L25 15 Z M30 15 L38 25 L22 25 Z M30 25 L42 38 L18 38 Z M28 38 L28 45 L32 45 L32 38 Z' fill='%2310b981' fill-opacity='0.04'/%3E%3C/svg%3E");
+        }
         .glass-panel {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border: 1px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         }
         .sidebar {
             width: 260px;
@@ -23,6 +35,7 @@
             transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
             color: white;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.1);
         }
         .sidebar.visible { left: 0; }
         .main-content {
@@ -30,228 +43,308 @@
             width: 100%;
         }
         .main-content.pushed { padding-left: 260px; }
-        .metric-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
-        }
-        .metric-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
         .nav-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 24px;
+            padding: 14px 24px;
             cursor: pointer;
             transition: all 0.2s;
             color: #94a3b8;
             font-weight: 500;
         }
         .nav-item:hover { color: white; background: #1e293b; }
-        .nav-item.active { color: white; background: #3b82f6; }
+        .nav-item.active { color: white; background: #059669; }
+        
+        .infra-card { 
+            background: white;
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+        }
+        .infra-card:hover { 
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05);
+            border-color: #10b981;
+        }
+        
+        .score-bar { height: 6px; border-radius: 3px; background: #f1f5f9; position: relative; overflow: hidden; }
+        .score-bar-fill { height: 100%; position: absolute; left: 0; top: 0; transition: width 1s ease-out; }
+        
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .workspace-row { transition: all 0.2s; }
+        .workspace-row:hover { background-color: #f0fdf4; }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <!-- Sidebar (Visible only after analysis) -->
+    <!-- Sidebar -->
     <aside id="app-sidebar" class="sidebar">
-        <div class="p-8">
-            <h2 class="text-xl font-black italic tracking-tighter text-blue-400 uppercase">City Planner</h2>
-            <p class="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-1">Ecology System</p>
+        <div class="p-8 border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <div>
+                    <h2 class="text-xl font-black italic tracking-tighter uppercase leading-none">Eco-Scale</h2>
+                    <p class="text-[9px] text-emerald-400 font-bold tracking-widest mt-1">PLANNER PRO</p>
+                </div>
+            </div>
         </div>
-        <nav class="mt-4 flex flex-col h-[calc(100vh-120px)]">
+        <nav class="mt-6 flex flex-col h-[calc(100vh-160px)]">
             <div onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"></path></svg>
-                <span>Dashboard</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                <span>Impact Dashboard</span>
             </div>
             <div onclick="navigateTo('library')" id="nav-library" class="nav-item">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                <span>Linkage Library</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span>Strategic Linkages</span>
             </div>
-            <div class="mt-auto border-t border-slate-800">
-                <div onclick="reset()" class="nav-item">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    <span>Reset Data</span>
-                </div>
+            <div onclick="navigateTo('infra-library')" id="nav-infra-library" class="nav-item">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                <span>Infra Library</span>
+            </div>
+            <div class="mt-auto border-t border-slate-800 p-4">
+                <button onclick="reset()" class="w-full flex items-center justify-center gap-2 py-3 bg-rose-500/10 text-rose-400 rounded-xl font-bold hover:bg-rose-500 hover:text-white transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>Reset Game</span>
+                </button>
             </div>
         </nav>
     </aside>
 
     <div id="main-container" class="main-content min-h-screen flex items-center justify-center p-4 md:p-8">
         
-        <div id="content-wrapper" class="max-w-5xl w-full space-y-6">
+        <div id="content-wrapper" class="max-w-5xl w-full space-y-8">
             
-            <!-- Step 1 & 2: Initial Inputs -->
-            <div id="input-container" class="max-w-xl mx-auto w-full">
-                <header class="text-center mb-8 text-slate-900">
-                    <h1 class="text-4xl font-extrabold tracking-tight">Ecology Scoreboard</h1>
-                    <p class="text-slate-500 mt-2 text-sm uppercase tracking-widest font-semibold">Urban Strategic Planning</p>
+            <!-- Phase 1: Name Entry -->
+            <div id="step-1" class="max-w-xl mx-auto w-full fade-in">
+                <header class="text-center mb-10">
+                    <div class="inline-flex p-5 bg-white rounded-3xl shadow-xl shadow-emerald-500/10 border border-emerald-50 mb-6">
+                        <svg class="w-14 h-14 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </div>
+                    <h1 class="text-5xl font-black tracking-tight text-slate-900 leading-tight">Ecology <br/><span class="text-emerald-500">Scoreboard</span></h1>
+                    <p class="text-slate-400 mt-4 font-bold uppercase tracking-[0.2em] text-[10px]">Urban Strategic Simulator</p>
                 </header>
 
-                <main class="glass-panel rounded-3xl shadow-xl p-8">
-                    <!-- Step 1: Name Entry -->
-                    <div id="step-1" class="space-y-6">
+                <main class="glass-panel rounded-[2.5rem] p-12 border-4 border-white">
+                    <div class="space-y-8">
                         <div class="text-center">
-                            <label for="user-name" class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Identity Authorization</label>
-                            <input type="text" id="user-name" placeholder="Enter your name..." 
-                                   class="w-full px-4 py-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-100 outline-none text-center text-xl font-bold text-slate-800 placeholder:text-slate-300 transition-all">
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Authorization Code Required</label>
+                            <input type="text" id="user-name" placeholder="Enter Planner Name..." 
+                                   class="w-full px-8 py-6 rounded-[1.5rem] border-2 border-slate-100 focus:ring-8 focus:ring-emerald-50 focus:border-emerald-500 outline-none text-center text-2xl font-bold text-slate-800 transition-all placeholder:text-slate-200">
                         </div>
-                        <button onclick="submitName()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg active:scale-[0.98]">
-                            Next
-                        </button>
-                    </div>
-
-                    <!-- Step 2: Infrastructure Input -->
-                    <div id="step-2" class="hidden space-y-6 fade-in">
-                        <div class="flex items-center justify-between border-b pb-4">
-                            <div>
-                                <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Planner Active</p>
-                                <h2 class="text-xl font-bold text-slate-800"><span id="display-player"></span></h2>
-                            </div>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            <label for="infra-ids" class="block text-sm font-semibold text-slate-700">Infrastructure IDs (Comma Separated)</label>
-                            <input type="text" id="infra-ids" placeholder="e.g., 1, 16, 48, 51" class="w-full px-4 py-4 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-100 outline-none text-lg font-medium transition-all">
-                            <p id="repetition-error" class="hidden text-xs text-rose-500 font-bold mt-1 uppercase tracking-tighter">⚠️ Repetition Error: One infrastructure can be chosen only one time.</p>
-                            <p class="text-[10px] text-slate-400 italic">65 Total Elements available. Analysis unlocks navigation and linkages.</p>
-                        </div>
-
-                        <button onclick="calculateScore()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg active:scale-[0.98]">
-                            Analyze City Development
+                        <button onclick="submitName()" class="w-full bg-slate-900 text-white py-6 rounded-[1.5rem] font-black text-xl hover:bg-emerald-600 transition-all shadow-2xl hover:scale-[1.02] active:scale-95">
+                            INITIATE PLANNING
                         </button>
                     </div>
                 </main>
             </div>
 
-            <!-- Step 3: Dashboard View -->
-            <div id="step-3" class="hidden fade-in space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 flex flex-col justify-center bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
-                        <p class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">Impact Analysis</p>
-                        <h2 class="text-3xl font-extrabold text-slate-900">Sustainability Profile</h2>
-                        <p class="text-slate-500 mt-2">Analysis for <span id="dash-player-name" class="font-bold text-slate-700"></span>. Benchmarked against the ideal 35% Env, 30% Eco, and 35% Soc distribution.</p>
-                    </div>
-
-                    <div class="bg-slate-900 rounded-3xl p-8 flex flex-col items-center justify-center text-center text-white shadow-xl">
-                        <p class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4">Alignment Gauge</p>
-                        <div class="relative inline-flex items-center justify-center">
-                            <svg class="w-32 h-32 transform -rotate-90">
-                                <circle cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800" />
-                                <circle id="alignment-circle" cx="64" cy="64" r="58" stroke="currentColor" stroke-width="8" fill="transparent" 
-                                        stroke-dasharray="364.4" stroke-dashoffset="364.4" class="text-emerald-400 transition-all duration-1000 ease-out" />
-                            </svg>
-                            <span id="alignment-score" class="absolute text-3xl font-black italic">0%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="metric-card p-6 rounded-2xl border-l-4 border-slate-900">
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 text-center">Final Score</p>
-                        <div id="final-result" class="text-4xl font-black text-slate-900 text-center">0</div>
-                        <p id="bonus-notif" class="text-[9px] text-blue-600 font-bold hidden text-center uppercase tracking-tighter animate-bounce">+ Linkage Bonus Applied</p>
-                    </div>
-                    <div class="metric-card p-6 rounded-2xl border-l-4 border-emerald-500">
-                        <p class="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-1">Environment</p>
-                        <div id="total-env" class="text-3xl font-bold text-slate-800">0</div>
-                    </div>
-                    <div class="metric-card p-6 rounded-2xl border-l-4 border-amber-500">
-                        <p class="text-xs font-bold text-amber-500 uppercase tracking-widest mb-1">Economy</p>
-                        <div id="total-eco" class="text-3xl font-bold text-slate-800">0</div>
-                    </div>
-                    <div class="metric-card p-6 rounded-2xl border-l-4 border-indigo-500">
-                        <p class="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-1">Society</p>
-                        <div id="total-soc" class="text-3xl font-bold text-slate-800">0</div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200">
-                        <h3 class="font-bold text-slate-800 mb-6 flex items-center gap-2 text-xs uppercase tracking-widest">Benchmarking Variance</h3>
-                        <div class="space-y-6">
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-[10px] font-bold">
-                                    <span class="text-slate-500 uppercase text-amber-600">Economy (Target 30%)</span>
-                                    <span id="diff-eco"></span>
-                                </div>
-                                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                    <div id="bar-eco-actual" class="h-full bg-amber-400"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-[10px] font-bold">
-                                    <span class="text-slate-500 uppercase text-indigo-600">Society (Target 35%)</span>
-                                    <span id="diff-soc"></span>
-                                </div>
-                                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                    <div id="bar-soc-actual" class="h-full bg-indigo-400"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-[10px] font-bold">
-                                    <span class="text-slate-500 uppercase text-emerald-600">Environment (Target 35%)</span>
-                                    <span id="diff-env"></span>
-                                </div>
-                                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                    <div id="bar-env-actual" class="h-full bg-emerald-400"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200">
-                        <h3 class="font-extrabold text-slate-800 mb-4 flex items-center gap-2 text-xs uppercase tracking-widest">Active Strategic Linkages</h3>
-                        <div id="linkages-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 p-8 rounded-3xl text-white">
-                    <h3 class="font-bold text-xl mb-4 text-blue-400 tracking-wide uppercase">Strategic Performance Review</h3>
-                    <div id="detailed-analysis" class="space-y-4 text-slate-300 font-medium leading-relaxed text-sm"></div>
-                    <div class="mt-6 pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <!-- Phase 2: Workspace -->
+            <div id="step-2" class="hidden fade-in space-y-6">
+                <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
                         <div>
-                            <p class="text-xs font-bold text-slate-500 uppercase mb-1 tracking-widest">Development Bias Profile</p>
-                            <p id="major-impact-tag" class="text-2xl font-black uppercase text-white tracking-wider">Analyzing...</p>
+                            <p class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-1">Grid System v2.0</p>
+                            <h2 class="text-4xl font-black text-slate-900">Build Your City, <span id="display-player" class="text-emerald-500"></span></h2>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                            <input type="number" id="infra-id-input" placeholder="ID (1-65)" 
+                                   class="px-6 py-5 rounded-2xl border-2 border-slate-100 focus:border-emerald-500 outline-none font-black text-2xl w-full sm:w-36 shadow-inner bg-slate-50">
+                            <button onclick="addInfrastructure()" class="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20 active:scale-95">ADD ASSET</button>
+                        </div>
+                    </div>
+
+                    <div id="repetition-error" class="hidden text-center mb-6 bg-rose-50 p-4 rounded-2xl border border-rose-100 text-rose-600 text-xs font-black uppercase tracking-widest">⚠️ Asset Redundancy Detected: Component already in grid.</div>
+                    <div id="invalid-error" class="hidden text-center mb-6 bg-rose-50 p-4 rounded-2xl border border-rose-100 text-rose-600 text-xs font-black uppercase tracking-widest">⚠️ Invalid Index: ID must be between 1 and 65.</div>
+
+                    <div class="max-h-[500px] overflow-y-auto custom-scrollbar px-2">
+                        <table class="w-full text-left border-separate border-spacing-y-4">
+                            <thead>
+                                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">
+                                    <th class="pb-2 px-6">ID</th>
+                                    <th class="pb-2 px-6">Infrastructure Element</th>
+                                    <th class="pb-2 px-6 text-center">Env</th>
+                                    <th class="pb-2 px-6 text-center">Eco</th>
+                                    <th class="pb-2 px-6 text-center">Soc</th>
+                                    <th class="pb-2 px-6 text-right">Points</th>
+                                    <th class="pb-2 px-6"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="workspace-rows"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="empty-workspace-msg" class="text-center py-24 border-4 border-dashed border-slate-50 rounded-[3rem] mt-4">
+                        <p class="text-slate-300 font-black uppercase tracking-[0.3em] text-sm">Awaiting Urban Integration</p>
+                    </div>
+
+                    <div class="mt-12 pt-10 border-t border-slate-100 flex justify-end">
+                        <button onclick="finalSubmit()" class="bg-slate-900 text-white px-20 py-6 rounded-3xl font-black text-2xl hover:bg-emerald-600 transition-all shadow-2xl hover:scale-105 active:scale-95 group">
+                            FINALIZE CITY
+                            <svg class="w-6 h-6 inline-block ml-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3: Dashboard View -->
+            <div id="step-3" class="hidden fade-in space-y-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 flex flex-col justify-center bg-white p-12 rounded-[3rem] shadow-sm border border-slate-200">
+                        <p class="text-xs font-black text-emerald-500 uppercase tracking-widest mb-2">Analysis Phase: Complete</p>
+                        <h2 class="text-5xl font-black text-slate-900 leading-none mb-6">Strategic Audit</h2>
+                        <p class="text-slate-400 text-base leading-relaxed max-w-lg mb-8">Performance report for planner <strong class="text-slate-700 italic"><span id="dash-player-name"></span></strong>. Alignment is benchmarked against the sustainable 35-30-35 distribution logic.</p>
+                        
+                        <div class="pt-8 border-t border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Current City Composition (IDs)</p>
+                            <div id="selected-ids-summary" class="flex flex-wrap gap-3"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-[3rem] p-12 flex flex-col items-center justify-center text-center text-white shadow-2xl relative overflow-hidden">
+                        <div class="absolute inset-0 bg-emerald-500 opacity-10 pointer-events-none" style="mask-image: radial-gradient(circle, black, transparent);"></div>
+                        <p class="text-xs font-black text-emerald-400 uppercase tracking-widest mb-10 z-10">Equilibrium Gauge</p>
+                        <div class="relative inline-flex items-center justify-center z-10">
+                            <svg class="w-48 h-48 transform -rotate-90">
+                                <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="14" fill="transparent" class="text-slate-800" />
+                                <circle id="alignment-circle" cx="96" cy="96" r="88" stroke="currentColor" stroke-width="14" fill="transparent" 
+                                        stroke-dasharray="552.9" stroke-dashoffset="552.9" class="text-emerald-500 transition-all duration-1000 ease-out" />
+                            </svg>
+                            <span id="alignment-score" class="absolute text-5xl font-black italic tracking-tighter">0%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Itemized Table -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="metric-card p-10 rounded-[2rem] border-b-8 border-slate-900 text-center">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Net Valuation</p>
+                        <div id="final-result" class="text-5xl font-black text-slate-900">0</div>
+                        <p id="bonus-notif" class="text-[9px] text-emerald-600 font-black hidden mt-4 bg-emerald-50 py-1 px-3 rounded-full inline-block">STRATEGIC BONUS APPLIED</p>
+                    </div>
+                    <div class="metric-card p-10 rounded-[2rem] border-b-8 border-emerald-500">
+                        <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Environment</p>
+                        <div id="total-env" class="text-4xl font-black text-slate-800">0</div>
+                    </div>
+                    <div class="metric-card p-10 rounded-[2rem] border-b-8 border-amber-500">
+                        <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-2">Economic</p>
+                        <div id="total-eco" class="text-4xl font-black text-slate-800">0</div>
+                    </div>
+                    <div class="metric-card p-10 rounded-[2rem] border-b-8 border-indigo-500">
+                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">Social</p>
+                        <div id="total-soc" class="text-4xl font-black text-slate-800">0</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
+                        <h3 class="font-black text-slate-900 mb-10 text-[11px] uppercase tracking-[0.3em] text-center border-b pb-6">Variance Audit</h3>
+                        <div class="space-y-10">
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-[11px] font-black">
+                                    <span class="text-amber-500 uppercase">ECONOMY (30%)</span>
+                                    <span id="diff-eco" class="font-mono text-sm"></span>
+                                </div>
+                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                                    <div id="bar-eco-actual" class="h-full bg-amber-400 shadow-inner transition-all duration-1000"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-[11px] font-black">
+                                    <span class="text-indigo-500 uppercase">SOCIAL (35%)</span>
+                                    <span id="diff-soc" class="font-mono text-sm"></span>
+                                </div>
+                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                                    <div id="bar-soc-actual" class="h-full bg-indigo-400 shadow-inner transition-all duration-1000"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between text-[11px] font-black">
+                                    <span class="text-emerald-500 uppercase">ECOLOGICAL (35%)</span>
+                                    <span id="diff-env" class="font-mono text-sm"></span>
+                                </div>
+                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+                                    <div id="bar-env-actual" class="h-full bg-emerald-400 shadow-inner transition-all duration-1000"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-white p-12 rounded-[2.5rem] shadow-sm border border-slate-200">
+                        <h3 class="font-black text-slate-900 mb-8 text-[11px] uppercase tracking-[0.3em] border-b pb-6">Detected Strategic Linkages</h3>
+                        <div id="active-linkages-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+                    <h3 class="font-black text-2xl mb-8 text-emerald-400 tracking-tighter uppercase">Comprehensive Review</h3>
+                    <div id="detailed-analysis" class="space-y-8 text-slate-300 font-medium leading-relaxed text-lg"></div>
+                    <div class="mt-12 pt-10 border-t border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-600 uppercase mb-3 tracking-[0.4em]">Development DNA</p>
+                            <p id="major-impact-tag" class="text-4xl font-black uppercase text-white tracking-tighter italic">Analyzing...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-8 py-6 bg-slate-50 border-b border-slate-100">
+                        <h3 class="font-black text-slate-800 text-xs uppercase tracking-widest">Itemized Valuation</h3>
+                    </div>
                     <table class="w-full text-left">
-                        <thead class="bg-slate-50 border-b">
-                            <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                                <th class="px-6 py-4">ID</th>
-                                <th class="px-6 py-4">Infrastructure Name</th>
-                                <th class="px-6 py-4 text-center">Env</th>
-                                <th class="px-6 py-4 text-center">Eco</th>
-                                <th class="px-6 py-4 text-center">Soc</th>
-                                <th class="px-6 py-4 text-right">Raw Sum</th>
+                        <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b">
+                            <tr>
+                                <th class="px-8 py-5">ID</th>
+                                <th class="px-8 py-5">Infrastructure Component</th>
+                                <th class="px-8 py-5 text-center text-emerald-600">Environmental</th>
+                                <th class="px-8 py-5 text-center text-amber-600">Economic</th>
+                                <th class="px-8 py-5 text-center text-indigo-600">Society</th>
+                                <th class="px-8 py-5 text-right">Impact Sum</th>
                             </tr>
                         </thead>
-                        <tbody id="dashboard-rows" class="divide-y text-xs"></tbody>
+                        <tbody id="dashboard-rows" class="divide-y text-[13px] font-medium text-slate-600"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Library View -->
+            <!-- Library View: Strategic Linkages -->
             <div id="step-library" class="hidden fade-in space-y-6">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
-                    <div class="mb-8">
-                        <h2 class="text-3xl font-black text-slate-900 italic tracking-tight">Strategic Linkages Library</h2>
-                        <p class="text-slate-500 text-sm">Strategic combinations identified for optimal city growth (+25 Bonus points each)</p>
+                <div class="bg-white p-12 rounded-[3rem] shadow-sm border border-slate-200">
+                    <div class="mb-12 border-b pb-10">
+                        <h2 class="text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4">Strategic Pairings</h2>
+                        <p class="text-slate-400 font-medium text-lg">Cross-pillar combinations that multiply net city valuation.</p>
                     </div>
-                    <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- Populated by JS -->
+                    <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-h-[65vh] overflow-y-auto custom-scrollbar pr-6 pb-12"></div>
+                </div>
+            </div>
+
+            <!-- Infrastructure Library View -->
+            <div id="step-infra-library" class="hidden fade-in space-y-6">
+                <div class="bg-white p-12 rounded-[3rem] shadow-sm border border-slate-200">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-12 border-b pb-10">
+                        <div>
+                            <h2 class="text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4">Master Database</h2>
+                            <p class="text-slate-400 font-medium text-lg">Full catalog of 65 urban components.</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-6 w-full md:w-auto">
+                            <input type="text" id="infra-search" onkeyup="filterInfraLibrary()" placeholder="Filter by name/ID..." 
+                                   class="px-8 py-5 rounded-[1.5rem] border-2 border-slate-100 bg-slate-50 focus:bg-white focus:ring-8 focus:ring-emerald-50 focus:border-emerald-500 outline-none text-base font-bold shadow-sm sm:w-80 transition-all">
+                            <select id="infra-sort" onchange="sortInfraLibrary()" class="px-8 py-5 rounded-[1.5rem] border-2 border-slate-100 bg-slate-50 outline-none text-base font-bold cursor-pointer transition-all hover:border-emerald-200">
+                                <option value="id">Index ID</option>
+                                <option value="env">Environmental Impact</option>
+                                <option value="eco">Economic Impact</option>
+                                <option value="soc">Social Impact</option>
+                            </select>
+                        </div>
                     </div>
+                    
+                    <div id="infra-library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto custom-scrollbar pr-6 pb-12"></div>
                 </div>
             </div>
 
@@ -328,22 +421,39 @@
         ];
 
         const linkages = [
-            { parts: ["EV Charging Infrastructure", "Rooftop Solar and Solar Farms"], label: "Renewable Mobility", benefit: "Linking solar generation to EV transit reduces carbon reliance." },
-            { parts: ["Waste Processing", "Waste-to-Energy"], label: "Circular Energy", benefit: "Converts solid waste streams directly into local power." },
-            { parts: ["Composting", "Biomethanation"], label: "Organic Efficiency", benefit: "Optimizes gas capture from organic urban waste." },
-            { parts: ["Smart Water Grid", "Rainwater Harvesting"], label: "Water Intelligence", benefit: "Connects local storage to smart distribution networks." },
-            { parts: ["Industries", "Carbon Capture Facilities", "Carbon Tax System"], label: "Deep De-carbonization", benefit: "Reduces heavy industrial footprint via mitigation." },
-            { parts: ["Public Transport Systems", "Biofuels"], label: "Sustainable Transit", benefit: "Eco-friendly fuel integration for mass mobility." },
-            { parts: ["Shopping Malls", "Rooftop Solar and Solar Farms"], label: "Commercial Green Grid", benefit: "High-demand retail cooled by renewable energy." },
-            { parts: ["Government Hospitals", "Rooftop Solar and Solar Farms"], label: "Essential Green Power", benefit: "Reliable, renewable energy for critical care facilities." },
-            { parts: ["Mining", "Subsidies for Afforestation"], label: "Restorative Extraction", benefit: "Mitigates mining damage through ecosystem rebuilding." },
-            { parts: ["Construction Sites", "Waste Processing"], label: "Circular Building", benefit: "Recycles construction debris into urban growth." }
+            { parts: ["Renewable Energy Farms", "EV Charging Infrastructure"], label: "Clean Mobility Power", benefit: "Clean electricity supports EV charging network" },
+            { parts: ["Rooftop Solar and Solar Farms", "Smart Street Lighting"], label: "Solar Lit Streets", benefit: "Solar energy offsets municipal lighting demand" },
+            { parts: ["Waste-to-Energy Plant", "Power Supply (Grid)"], label: "Waste-to-Grid", benefit: "Waste converted into power and supplied to grid" },
+            { parts: ["Biofuels", "Public Transport Systems"], label: "Eco-Fleet", benefit: "Lower-emission buses and fleet mobility" },
+            { parts: ["Carbon Capture Facilities", "Carbon Tax System", "Industries"], label: "Industrial Decarbonization", benefit: "Industrial emissions reduced with policy incentive" },
+            { parts: ["Rainwater Harvesting", "Affordable Housing Complexes", "Water Supply"], label: "Resilient Housing Water", benefit: "Housing gets resilient supplementary water source" },
+            { parts: ["Pocket Parks", "Safe Pedestrian Walkways"], label: "Green Walkways", benefit: "Better walkability, comfort, wellbeing" },
+            { parts: ["Subsidies for Afforestation", "Urban Forest"], label: "Afforestation Boost", benefit: "Financial support accelerates greening programs" },
+            { parts: ["Decomposting Facilities", "Waste Processing"], label: "Organic Loop", benefit: "Organic waste efficiently processed" },
+            { parts: ["Cold Storage (Food Waste)", "Food Banks / Community Kitchens"], label: "Food Security", benefit: "Preserves food and reduces hunger/waste" },
+            { parts: ["Construction Sites", "Waste Processing"], label: "Circular Construction", benefit: "Construction debris recycled and reused" },
+            { parts: ["Public Transport Systems", "Safe Pedestrian Walkways"], label: "Transit Connectivity", benefit: "Strong first/last-mile transit access" },
+            { parts: ["Shopping Malls", "EV Charging Infrastructure"], label: "Commercial EV Hubs", benefit: "Parking hubs ideal for EV charging demand" },
+            { parts: ["Smart Street Lighting", "Public Transport Systems"], label: "Safe Night Transit", benefit: "Safer access to transit at night" },
+            { parts: ["Government Schools", "Public Libraries"], label: "Knowledge Ecosystem", benefit: "Stronger public learning ecosystem" },
+            { parts: ["Skill Training Centers", "Industries"], label: "Workforce Pipeline", benefit: "Workforce pipeline for jobs and productivity" },
+            { parts: ["Mental Wellness Centers", "City Parks"], label: "Mental Wellbeing: Parks", benefit: "Nature + care improves mental wellbeing" },
+            { parts: ["Mental Wellness Centers", "Pocket Parks"], label: "Mental Wellbeing: Pocket Parks", benefit: "Nature + care improves mental wellbeing" },
+            { parts: ["Mental Wellness Centers", "Urban Forest Recreation Zones"], label: "Mental Wellbeing: Forest Zones", benefit: "Nature + care improves mental wellbeing" },
+            { parts: ["Police Stations", "CCTV Safety Network"], label: "Advanced Surveillance", benefit: "Better surveillance and faster response" },
+            { parts: ["Affordable Housing Complexes", "Urban Forest Recreation Zones"], label: "Healthy Living Zones", benefit: "Cooler, healthier residential communities" },
+            { parts: ["Construction Sites", "Smart Water Grid"], label: "Smart Site Management", benefit: "Efficient monitored water use during development" },
+            { parts: ["Fire Stations & Ambulance Hubs", "Government Hospitals"], label: "Emergency Response Chain", benefit: "Faster emergency treatment chain" },
+            { parts: ["Mining", "River Restoration Projects"], label: "Extractive Restoration", benefit: "Ecological restoration after extraction impacts" }
         ];
 
         let userName = "";
+        let selectedItems = [];
 
         function submitName() {
-            userName = document.getElementById('user-name').value.trim();
+            const input = document.getElementById('user-name');
+            if (!input) return;
+            userName = input.value.trim();
             if (!userName) return;
             const display = document.getElementById('display-player');
             if (display) display.innerText = userName;
@@ -351,127 +461,103 @@
             document.getElementById('step-2').classList.remove('hidden');
         }
 
-        function navigateTo(page) {
-            const sidebar = document.getElementById('app-sidebar');
-            if (!sidebar || !sidebar.classList.contains('visible')) return;
-            const dash = document.getElementById('step-3');
-            const lib = document.getElementById('step-library');
-            const navDash = document.getElementById('nav-dashboard');
-            const navLib = document.getElementById('nav-library');
-            if (dash) dash.classList.add('hidden');
-            if (lib) lib.classList.add('hidden');
-            if (navDash) navDash.classList.remove('active');
-            if (navLib) navLib.classList.remove('active');
-            if (page === 'dashboard' && dash) {
-                dash.classList.remove('hidden');
-                if (navDash) navDash.classList.add('active');
-            } else if (page === 'library' && lib) {
-                lib.classList.remove('hidden');
-                if (navLib) navLib.classList.add('active');
-                populateLibrary();
+        function addInfrastructure() {
+            const input = document.getElementById('infra-id-input');
+            const errorRep = document.getElementById('repetition-error');
+            const errorInv = document.getElementById('invalid-error');
+            if (!input || !errorRep || !errorInv) return;
+            
+            const id = parseInt(input.value);
+            errorRep.classList.add('hidden');
+            errorInv.classList.add('hidden');
+            
+            if (isNaN(id) || id < 1 || id > 65) {
+                errorInv.classList.remove('hidden');
+                return;
+            }
+            if (selectedItems.some(item => item.id === id)) {
+                errorRep.classList.remove('hidden');
+                return;
+            }
+            const item = masterData.find(d => d.id === id);
+            if (item) {
+                selectedItems.push(item);
+                updateWorkspaceTable();
+                input.value = "";
+                input.focus();
             }
         }
 
-        function populateLibrary() {
-            const grid = document.getElementById('library-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
-            linkages.forEach(l => {
-                const card = document.createElement('div');
-                card.className = "bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-blue-400 transition-all";
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">Linkage</span>
-                        <span class="text-blue-600 font-bold text-xs">+25 Bonus</span>
-                    </div>
-                    <h4 class="font-bold text-slate-900 mb-2 text-sm">${l.label}</h4>
-                    <p class="text-[10px] text-slate-400 uppercase font-black mb-1">Requires:</p>
-                    <p class="text-[10px] text-slate-600 mb-4">${l.parts.join(' + ')}</p>
-                    <p class="text-[11px] text-slate-500 italic border-t pt-3">${l.benefit}</p>
-                `;
-                grid.appendChild(card);
+        function updateWorkspaceTable() {
+            const tbody = document.getElementById('workspace-rows');
+            const emptyMsg = document.getElementById('empty-workspace-msg');
+            if (!tbody || !emptyMsg) return;
+            
+            if (selectedItems.length > 0) emptyMsg.classList.add('hidden');
+            else emptyMsg.classList.remove('hidden');
+            
+            tbody.innerHTML = '';
+            selectedItems.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "workspace-row bg-white rounded-2xl shadow-sm";
+                tr.innerHTML = `<td class="py-5 px-6 font-mono font-black text-slate-300 text-xs">${item.id}</td><td class="py-5 px-6 font-black text-slate-800 text-sm">${item.name}</td><td class="py-5 px-6 text-center text-emerald-500 font-black">${item.env}</td><td class="py-5 px-6 text-center text-amber-500 font-black">${item.eco}</td><td class="py-5 px-6 text-center text-indigo-500 font-black">${item.soc}</td><td class="py-5 px-6 text-right font-black text-slate-900">${item.env + item.eco + item.soc}</td><td class="py-5 px-6 text-right"><button onclick="removeItem(${index})" class="p-2 text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>`;
+                tbody.appendChild(tr);
             });
         }
 
-        function reset() {
-            const sidebar = document.getElementById('app-sidebar');
-            const main = document.getElementById('main-container');
-            const inputCont = document.getElementById('input-container');
-            const step1 = document.getElementById('step-1');
-            const step2 = document.getElementById('step-2');
-            const step3 = document.getElementById('step-3');
-            const stepLib = document.getElementById('step-library');
-            const errorEl = document.getElementById('repetition-error');
-            const inputField = document.getElementById('infra-ids');
-            if (sidebar) sidebar.classList.remove('visible');
-            if (main) main.classList.remove('pushed');
-            if (inputCont) inputCont.classList.remove('hidden');
-            if (step1) step1.classList.remove('hidden');
-            if (step2) step2.classList.add('hidden');
-            if (step3) step3.classList.add('hidden');
-            if (stepLib) stepLib.classList.add('hidden');
-            if (errorEl) errorEl.classList.add('hidden');
-            if (inputField) {
-                inputField.value = '';
-                inputField.classList.remove('border-rose-500', 'ring-rose-100');
-            }
+        function removeItem(index) {
+            selectedItems.splice(index, 1);
+            updateWorkspaceTable();
         }
 
-        function calculateScore() {
-            const inputEl = document.getElementById('infra-ids');
-            const errorEl = document.getElementById('repetition-error');
-            if (!inputEl) return;
-            const val = inputEl.value;
-            const ids = val.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
-            if (ids.length === 0) return;
-            const uniqueIds = new Set(ids);
-            if (uniqueIds.size !== ids.length) {
-                if (errorEl) errorEl.classList.remove('hidden');
-                inputEl.classList.add('border-rose-500', 'ring-rose-100');
-                return;
-            } else {
-                if (errorEl) errorEl.classList.add('hidden');
-                inputEl.classList.remove('border-rose-500', 'ring-rose-100');
-            }
+        function finalSubmit() {
+            if (selectedItems.length === 0) return;
             let sumEnv = 0, sumEco = 0, sumSoc = 0;
-            const rows = document.getElementById('dashboard-rows');
-            if (rows) rows.innerHTML = '';
-            const items = ids.map(id => masterData.find(d => d.id === id)).filter(Boolean);
-            if (items.length === 0) return;
-            const selectedNames = items.map(i => i.name);
-            items.forEach(item => {
+            const selectedNames = selectedItems.map(i => i.name);
+            const dashboardTableBody = document.getElementById('dashboard-rows');
+            const idSummaryDiv = document.getElementById('selected-ids-summary');
+            
+            if (dashboardTableBody) dashboardTableBody.innerHTML = '';
+            if (idSummaryDiv) idSummaryDiv.innerHTML = '';
+
+            selectedItems.forEach(item => {
                 const net = item.env + item.eco + item.soc;
                 sumEnv += item.env; sumEco += item.eco; sumSoc += item.soc;
-                if (rows) {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition-colors";
-                    tr.innerHTML = `<td class="px-6 py-4 font-bold text-slate-400">${item.id}</td><td class="px-6 py-4 font-bold text-slate-800">${item.name}</td><td class="px-6 py-4 text-center text-emerald-600 font-semibold">${item.env}</td><td class="px-6 py-4 text-center text-amber-600 font-semibold">${item.eco}</td><td class="px-6 py-4 text-center text-indigo-600 font-semibold">${item.soc}</td><td class="px-6 py-4 text-right font-black">${net}</td>`;
-                    rows.appendChild(tr);
-                }
+                const badge = document.createElement('span');
+                badge.className = "px-4 py-2 bg-slate-900 text-white rounded-xl text-[11px] font-black tracking-tighter shadow-lg shadow-slate-200";
+                badge.innerText = item.id;
+                if (idSummaryDiv) idSummaryDiv.appendChild(badge);
+                
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `<td class="px-8 py-5 font-black text-slate-300 font-mono text-xs">${item.id}</td><td class="px-8 py-5 font-black text-slate-800">${item.name}</td><td class="px-8 py-5 text-center text-emerald-600 font-black">${item.env}</td><td class="px-8 py-5 text-center text-amber-600 font-black">${item.eco}</td><td class="px-8 py-5 text-center text-indigo-600 font-black">${item.soc}</td><td class="px-8 py-5 text-right font-black text-slate-900">${net}</td>`;
+                if (dashboardTableBody) dashboardTableBody.appendChild(tr);
             });
+
             let bonus = 0;
-            const linkDiv = document.getElementById('linkages-container');
-            if (linkDiv) linkDiv.innerHTML = '';
+            const activeLinkagesDiv = document.getElementById('active-linkages-container');
+            if (activeLinkagesDiv) activeLinkagesDiv.innerHTML = '';
+            
             linkages.forEach(l => {
                 const hasAll = l.parts.every(p => selectedNames.some(n => n.toLowerCase().includes(p.toLowerCase())));
                 if (hasAll) {
                     bonus += 25;
-                    if (linkDiv) {
-                        const card = document.createElement('div');
-                        card.className = "linkage-card p-4 rounded-2xl shadow-sm border border-blue-200 bg-blue-50";
-                        card.innerHTML = `<div class="flex justify-between items-start mb-2"><span class="text-[9px] font-black text-blue-600 uppercase">Active Linkage</span><span class="bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full">+25 Bonus</span></div><h4 class="font-bold text-slate-900 text-xs mb-1">${l.label}</h4><p class="text-[10px] text-slate-600 leading-tight">${l.benefit}</p>`;
-                        linkDiv.appendChild(card);
-                    }
+                    const card = document.createElement('div');
+                    card.className = "p-6 rounded-[1.5rem] border-2 border-emerald-50 bg-emerald-50/20";
+                    card.innerHTML = `<div class="flex justify-between items-start mb-3"><span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Combination Found</span><span class="bg-emerald-600 text-white text-[10px] px-3 py-1 rounded-full">+25</span></div><h4 class="font-black text-slate-900 text-sm mb-2 leading-tight">${l.label}</h4><p class="text-[11px] text-slate-500 leading-relaxed italic">${l.benefit}</p>`;
+                    if (activeLinkagesDiv) activeLinkagesDiv.appendChild(card);
                 }
             });
-            if (linkDiv && linkDiv.innerHTML === '') linkDiv.innerHTML = '<p class="text-sm text-slate-400 col-span-2 italic text-center p-4">No active strategic linkages found.</p>';
+
+            if (activeLinkagesDiv && activeLinkagesDiv.innerHTML === '') activeLinkagesDiv.innerHTML = '<p class="text-sm text-slate-400 col-span-2 italic text-center py-6 border-2 border-dashed border-slate-100 rounded-[1.5rem]">No strategic linkages detected.</p>';
+
             const rawTotal = sumEnv + sumEco + sumSoc;
             const totalWithBonus = rawTotal + bonus;
             const pEnv = rawTotal !== 0 ? (sumEnv / rawTotal) * 100 : 0;
             const pEco = rawTotal !== 0 ? (sumEco / rawTotal) * 100 : 0;
             const pSoc = rawTotal !== 0 ? (sumSoc / rawTotal) * 100 : 0;
-            const deviation = Math.abs(pEnv - 35) + Math.abs(pEco - 30) + Math.abs(pSoc - 35);
-            const score = Math.max(0, 100 - (deviation / 1.4)).toFixed(0);
+            const score = Math.max(0, 100 - ((Math.abs(pEnv - 35) + Math.abs(pEco - 30) + Math.abs(pSoc - 35)) / 1.4)).toFixed(0);
+
             const dashName = document.getElementById('dash-player-name');
             if (dashName) dashName.innerText = userName;
             const finalRes = document.getElementById('final-result');
@@ -482,28 +568,28 @@
             if (tEco) tEco.innerText = sumEco;
             const tSoc = document.getElementById('total-soc');
             if (tSoc) tSoc.innerText = sumSoc;
-            const alignScore = document.getElementById('alignment-score');
-            if (alignScore) alignScore.innerText = score + "%";
+            const alScore = document.getElementById('alignment-score');
+            if (alScore) alScore.innerText = score + "%";
+            
             const circle = document.getElementById('alignment-circle');
-            if (circle) circle.style.strokeDashoffset = 364.4 - (score / 100) * 364.4;
+            if (circle) circle.style.strokeDashoffset = 552.9 - (score / 100) * 552.9;
+            
             const bonusNotif = document.getElementById('bonus-notif');
             if (bonusNotif) bonusNotif.classList.toggle('hidden', bonus === 0);
+
             updateBenchmark('eco', pEco, 30);
             updateBenchmark('soc', pSoc, 35);
             updateBenchmark('env', pEnv, 35);
             generateBias(pEnv, pEco, pSoc, score, bonus);
-            const sidebar = document.getElementById('app-sidebar');
-            const main = document.getElementById('main-container');
-            const inputCont = document.getElementById('input-container');
-            const step3 = document.getElementById('step-3');
-            const navDash = document.getElementById('nav-dashboard');
-            const navLib = document.getElementById('nav-library');
-            if (sidebar) sidebar.classList.add('visible');
-            if (main) main.classList.add('pushed');
-            if (inputCont) inputCont.classList.add('hidden');
-            if (step3) step3.classList.remove('hidden');
-            if (navDash) navDash.classList.add('active');
-            if (navLib) navLib.classList.remove('active');
+            
+            populateInfraLibraryGrid();
+            populateLibraryGrid();
+
+            document.getElementById('app-sidebar').classList.add('visible');
+            document.getElementById('main-container').classList.add('pushed');
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
+            document.getElementById('nav-dashboard').classList.add('active');
         }
 
         function updateBenchmark(key, actual, target) {
@@ -513,7 +599,7 @@
             const diff = actual - target;
             bar.style.width = actual + "%";
             label.innerText = (diff > 0 ? "+" : "") + diff.toFixed(1) + "%";
-            label.className = "font-bold text-[9px] " + (Math.abs(diff) < 5 ? "text-emerald-500" : "text-rose-500");
+            label.className = "font-black text-[10px] " + (Math.abs(diff) < 5 ? "text-emerald-500" : "text-rose-500");
         }
 
         function generateBias(env, eco, soc, score, bonus) {
@@ -524,16 +610,117 @@
             const best = diffs.sort((a,b)=>b.v-a.v)[0];
             const isSustainable = parseInt(score) >= 97;
             tag.innerText = isSustainable ? "Sustainable Visionary" : best.n;
-            let html = `<p>City Audit for <strong>${userName}</strong>: Your alignment score is <strong>${score}%</strong>.</p>`;
-            if (isSustainable) {
-                html += `<p class="text-emerald-400">• <strong>Strategic Harmony:</strong> Your city has achieved the ideal balance between nature, growth, and society.</p>`;
-            } else {
-                html += `<p class="text-amber-400">• <strong>Development Bias:</strong> Your city heavily favors <strong>${best.n}</strong>. This strategy yields high performance in those sectors but may lead to neglect in other critical urban needs.</p>`;
-            }
-            if (bonus > 0) {
-                html += `<p class="text-blue-400">• <strong>Linkage Advantage:</strong> You have unlocked ${bonus/25} Strategic Linkages, optimizing your urban network efficiency.</p>`;
-            }
+            let html = `<p>Comprehensive City Audit for <strong>${userName}</strong> identifies an alignment score of <strong>${score}%</strong>.</p>`;
+            if (isSustainable) html += `<p class="text-emerald-500 font-black">• <strong>Strategic Excellence:</strong> Your city has reached the pinnacle of harmony between nature, growth, and society.</p>`;
+            else html += `<p class="text-slate-500 italic">• <strong>Focus Profile:</strong> Your city profile heavily favors <strong>${best.n.split(' ')[0]}</strong> objectives. This results in high localized impact but potential long-term fragility in other sectors.</p>`;
+            if (bonus > 0) html += `<p class="text-emerald-500 font-bold">• <strong>Network Multiplier:</strong> You have unlocked ${bonus/25} Strategic Linkages, optimizing your urban connectivity points.</p>`;
             analysis.innerHTML = html;
+        }
+
+        function navigateTo(page) {
+            const views = ['step-3', 'step-library', 'step-infra-library'];
+            const navs = ['nav-dashboard', 'nav-library', 'nav-infra-library'];
+            views.forEach(v => {
+                const el = document.getElementById(v);
+                if (el) el.classList.add('hidden');
+            });
+            navs.forEach(n => {
+                const el = document.getElementById(n);
+                if (el) el.classList.remove('active');
+            });
+            if (page === 'dashboard') {
+                document.getElementById('step-3').classList.remove('hidden');
+                document.getElementById('nav-dashboard').classList.add('active');
+            } else if (page === 'library') {
+                document.getElementById('step-library').classList.remove('hidden');
+                document.getElementById('nav-library').classList.add('active');
+            } else if (page === 'infra-library') {
+                document.getElementById('step-infra-library').classList.remove('hidden');
+                document.getElementById('nav-infra-library').classList.add('active');
+            }
+        }
+
+        function populateLibraryGrid() {
+            const grid = document.getElementById('library-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            linkages.forEach(l => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 p-8 rounded-[2rem] border-2 border-transparent hover:border-emerald-500 hover:bg-white transition-all duration-500";
+                card.innerHTML = `<div class="flex justify-between items-start mb-6"><span class="bg-slate-900 text-white text-[9px] px-3 py-1.5 rounded-full font-black uppercase tracking-widest">Synergy Protocol</span><span class="text-emerald-600 font-black text-xs">+25 BONUS</span></div><h4 class="font-black text-slate-900 mb-3 text-lg leading-tight">${l.label}</h4><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-4">Required Assets:</p><p class="text-xs text-slate-700 leading-relaxed font-bold bg-emerald-50 p-4 rounded-2xl mb-6">${l.parts.join(' + ')}</p><p class="text-[11px] text-slate-400 italic border-t border-slate-100 pt-6 leading-relaxed">${l.benefit}</p>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function populateInfraLibraryGrid(filteredData = masterData) {
+            const grid = document.getElementById('infra-library-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            filteredData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "infra-card p-6 rounded-[2rem] bg-white";
+                card.innerHTML = `
+                    <div class="flex items-start gap-4 mb-6">
+                        <span class="w-12 h-12 flex items-center justify-center bg-slate-900 text-white text-sm font-black rounded-2xl shrink-0 shadow-lg shadow-slate-200">${item.id}</span>
+                        <h4 class="text-base font-black text-slate-800 leading-tight pt-1">${item.name}</h4>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[9px] font-black uppercase text-emerald-500 tracking-widest"><span>Environmental</span><span>${item.env}</span></div>
+                            <div class="score-bar"><div class="score-bar-fill bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]" style="width: ${Math.max(0, item.env)}%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[9px] font-black uppercase text-amber-500 tracking-widest"><span>Economic</span><span>${item.eco}</span></div>
+                            <div class="score-bar"><div class="score-bar-fill bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]" style="width: ${Math.max(0, item.eco)}%"></div></div>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[9px] font-black uppercase text-indigo-500 tracking-widest"><span>Social Impact</span><span>${item.soc}</span></div>
+                            <div class="score-bar"><div class="score-bar-fill bg-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.3)]" style="width: ${Math.max(0, item.soc)}%"></div></div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterInfraLibrary() {
+            const queryEl = document.getElementById('infra-search');
+            if (!queryEl) return;
+            const query = queryEl.value.toLowerCase();
+            const filtered = masterData.filter(item => 
+                item.name.toLowerCase().includes(query) || item.id.toString() === query
+            );
+            populateInfraLibraryGrid(filtered);
+        }
+
+        function sortInfraLibrary() {
+            const sortEl = document.getElementById('infra-sort');
+            if (!sortEl) return;
+            const key = sortEl.value;
+            const sorted = [...masterData].sort((a, b) => {
+                if (key === 'id') return a.id - b.id;
+                return b[key] - a[key];
+            });
+            populateInfraLibraryGrid(sorted);
+        }
+
+        function reset() {
+            const sidebar = document.getElementById('app-sidebar');
+            const main = document.getElementById('main-container');
+            if (sidebar) sidebar.classList.remove('visible');
+            if (main) main.classList.remove('pushed');
+            
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById('step-library').classList.add('hidden');
+            document.getElementById('step-infra-library').classList.add('hidden');
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-1').classList.remove('hidden');
+            selectedItems = [];
+            updateWorkspaceTable();
+            const un = document.getElementById('user-name');
+            if (un) un.value = "";
+            const ii = document.getElementById('infra-id-input');
+            if (ii) ii.value = "";
         }
     </script>
 </body>
