@@ -16,7 +16,6 @@
             font-family: 'Inter', sans-serif; 
             background-color: #f8fafc; 
             overflow-x: hidden;
-            /* Creative Tree Watermark Pattern */
             background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L35 15 L25 15 Z M30 15 L38 25 L22 25 Z M30 25 L42 38 L18 38 Z M28 38 L28 45 L32 45 L32 38 Z' fill='%2310b981' fill-opacity='0.04'/%3E%3C/svg%3E");
         }
         .glass-panel {
@@ -30,19 +29,25 @@
             background: #0f172a;
             height: 100vh;
             position: fixed;
-            left: -260px;
+            left: 0;
             top: 0;
-            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
             color: white;
             box-shadow: 10px 0 30px rgba(0,0,0,0.1);
         }
-        .sidebar.visible { left: 0; }
+        .sidebar.visible { transform: translateX(0); }
+        
         .main-content {
             transition: padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
         }
-        .main-content.pushed { padding-left: 260px; }
+        
+        @media (min-width: 1024px) {
+            .main-content.pushed { padding-left: 260px; }
+        }
+
         .nav-item {
             display: flex;
             align-items: center;
@@ -60,6 +65,7 @@
             background: white;
             border: 1px solid #f1f5f9;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         .infra-card:hover { 
             transform: translateY(-4px);
@@ -77,24 +83,94 @@
         .fade-in { animation: fadeIn 0.6s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        .workspace-row { transition: all 0.2s; }
-        .workspace-row:hover { background-color: #f0fdf4; }
+        .modal-backdrop {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .mobile-nav-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 110;
+            background: #0f172a;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 1023px) {
+            .mobile-nav-toggle.active { display: block; }
+        }
     </style>
 </head>
 <body class="min-h-screen">
 
+    <!-- Modal for Infrastructure Details -->
+    <div id="infra-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-8 modal-backdrop fade-in">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-slate-100">
+            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 transition-colors bg-slate-50 rounded-full">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l18 18"></path></svg>
+            </button>
+            <div class="p-8 md:p-12 overflow-y-auto max-h-[90vh] custom-scrollbar">
+                <div class="flex items-center gap-4 mb-8">
+                    <span id="modal-id" class="w-12 h-12 flex items-center justify-center bg-slate-900 text-white text-xl font-black rounded-2xl"></span>
+                    <h2 id="modal-title" class="text-2xl md:text-3xl font-black text-slate-900 leading-tight"></h2>
+                </div>
+                
+                <div class="space-y-8">
+                    <div class="p-6 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <h3 class="font-black text-emerald-800 uppercase tracking-widest text-[11px]">Environmental Importance</h3>
+                        </div>
+                        <p id="modal-env-reason" class="text-sm text-emerald-700 leading-relaxed font-medium"></p>
+                    </div>
+
+                    <div class="p-6 bg-amber-50 rounded-2xl border border-amber-100">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <h3 class="font-black text-amber-800 uppercase tracking-widest text-[11px]">Economic Rationale</h3>
+                        </div>
+                        <p id="modal-eco-reason" class="text-sm text-amber-700 leading-relaxed font-medium"></p>
+                    </div>
+
+                    <div class="p-6 bg-indigo-50 rounded-2xl border border-indigo-100">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            <h3 class="font-black text-indigo-800 uppercase tracking-widest text-[11px]">Societal Value</h3>
+                        </div>
+                        <p id="modal-soc-reason" class="text-sm text-indigo-700 leading-relaxed font-medium"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation Toggle -->
+    <button id="mobile-toggle" class="mobile-nav-toggle" onclick="toggleSidebar()">
+        <svg id="toggle-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+
     <!-- Sidebar -->
     <aside id="app-sidebar" class="sidebar">
-        <div class="p-8 border-b border-slate-800">
+        <div class="p-8 border-b border-slate-800 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-black italic tracking-tighter uppercase leading-none">Eco-Scale</h2>
-                    <p class="text-[9px] text-emerald-400 font-bold tracking-widest mt-1">PLANNER PRO</p>
+                    <h2 class="text-xl font-black italic tracking-tighter uppercase leading-none text-white">Eco-Scale</h2>
+                    <p class="text-[9px] text-emerald-400 font-bold tracking-widest mt-1 uppercase">Planner Pro</p>
                 </div>
             </div>
+            <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l18 18"></path></svg>
+            </button>
         </div>
         <nav class="mt-6 flex flex-col h-[calc(100vh-160px)]">
             <div onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-item">
@@ -119,56 +195,55 @@
     </aside>
 
     <div id="main-container" class="main-content min-h-screen flex items-center justify-center p-4 md:p-8">
-        
         <div id="content-wrapper" class="max-w-5xl w-full space-y-8">
             
             <!-- Phase 1: Name Entry -->
-            <div id="step-1" class="max-w-xl mx-auto w-full fade-in">
+            <div id="step-1" class="max-w-xl mx-auto w-full fade-in px-4">
                 <header class="text-center mb-10">
                     <div class="inline-flex p-5 bg-white rounded-3xl shadow-xl shadow-emerald-500/10 border border-emerald-50 mb-6">
-                        <svg class="w-14 h-14 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg class="w-10 h-10 md:w-14 md:h-14 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     </div>
-                    <h1 class="text-5xl font-black tracking-tight text-slate-900 leading-tight">Ecology <br/><span class="text-emerald-500">Scoreboard</span></h1>
+                    <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight">Ecology <br/><span class="text-emerald-500">Scoreboard</span></h1>
                     <p class="text-slate-400 mt-4 font-bold uppercase tracking-[0.2em] text-[10px]">Urban Strategic Simulator</p>
                 </header>
 
-                <main class="glass-panel rounded-[2.5rem] p-12 border-4 border-white">
+                <main class="glass-panel rounded-[2.5rem] p-8 md:p-12 border-4 border-white">
                     <div class="space-y-8">
                         <div class="text-center">
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Authorization Code Required</label>
+                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6 text-center">Authorization Code Required</label>
                             <input type="text" id="user-name" placeholder="Enter Planner Name..." 
-                                   class="w-full px-8 py-6 rounded-[1.5rem] border-2 border-slate-100 focus:ring-8 focus:ring-emerald-50 focus:border-emerald-500 outline-none text-center text-2xl font-bold text-slate-800 transition-all placeholder:text-slate-200">
+                                   class="w-full px-6 py-4 md:px-8 md:py-6 rounded-[1.5rem] border-2 border-slate-100 focus:ring-8 focus:ring-emerald-50 focus:border-emerald-500 outline-none text-center text-xl md:text-2xl font-bold text-slate-800 transition-all placeholder:text-slate-200">
                         </div>
-                        <button onclick="submitName()" class="w-full bg-slate-900 text-white py-6 rounded-[1.5rem] font-black text-xl hover:bg-emerald-600 transition-all shadow-2xl hover:scale-[1.02] active:scale-95">
+                        <button onclick="submitName()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black text-xl hover:bg-emerald-600 transition-all shadow-2xl hover:scale-[1.02] active:scale-95">
                             INITIATE PLANNING
                         </button>
                     </div>
                 </main>
             </div>
 
-            <!-- Phase 2: Workspace -->
+            <!-- Phase 2: Workspace (Add IDs one by one) -->
             <div id="step-2" class="hidden fade-in space-y-6">
-                <div class="bg-white p-10 rounded-[3rem] shadow-sm border border-slate-200 relative overflow-hidden">
+                <div class="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-200 relative overflow-hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
                         <div>
                             <p class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-1">Grid System v2.0</p>
-                            <h2 class="text-4xl font-black text-slate-900">Build Your City, <span id="display-player" class="text-emerald-500"></span></h2>
+                            <h2 class="text-2xl md:text-4xl font-black text-slate-900">Build Your City, <span id="display-player" class="text-emerald-500"></span></h2>
                         </div>
-                        <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                        <div class="flex flex-row gap-4 w-full md:w-auto">
                             <input type="number" id="infra-id-input" placeholder="ID (1-65)" 
-                                   class="px-6 py-5 rounded-2xl border-2 border-slate-100 focus:border-emerald-500 outline-none font-black text-2xl w-full sm:w-36 shadow-inner bg-slate-50">
-                            <button onclick="addInfrastructure()" class="bg-emerald-600 text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20 active:scale-95">ADD ASSET</button>
+                                   class="px-4 py-3 md:px-6 md:py-5 rounded-2xl border-2 border-slate-100 focus:border-emerald-500 outline-none font-black text-xl md:text-2xl w-24 md:w-36 shadow-inner bg-slate-50">
+                            <button onclick="addInfrastructure()" class="flex-1 bg-emerald-600 text-white px-6 md:px-10 py-3 md:py-5 rounded-2xl font-black text-sm md:text-lg hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20 active:scale-95">ADD ASSET</button>
                         </div>
                     </div>
 
                     <div id="repetition-error" class="hidden text-center mb-6 bg-rose-50 p-4 rounded-2xl border border-rose-100 text-rose-600 text-xs font-black uppercase tracking-widest">⚠️ Asset Redundancy Detected: Component already in grid.</div>
                     <div id="invalid-error" class="hidden text-center mb-6 bg-rose-50 p-4 rounded-2xl border border-rose-100 text-rose-600 text-xs font-black uppercase tracking-widest">⚠️ Invalid Index: ID must be between 1 and 65.</div>
 
-                    <div class="max-h-[500px] overflow-y-auto custom-scrollbar px-2">
-                        <table class="w-full text-left border-separate border-spacing-y-4">
+                    <div class="overflow-x-auto custom-scrollbar -mx-6 px-6 md:mx-0 md:px-2">
+                        <table class="w-full text-left border-separate border-spacing-y-4 min-w-[600px]">
                             <thead>
                                 <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">
-                                    <th class="pb-2 px-6">ID</th>
+                                    <th class="pb-2 px-6 text-center">ID</th>
                                     <th class="pb-2 px-6">Infrastructure Element</th>
                                     <th class="pb-2 px-6 text-center">Env</th>
                                     <th class="pb-2 px-6 text-center">Eco</th>
@@ -181,14 +256,13 @@
                         </table>
                     </div>
 
-                    <div id="empty-workspace-msg" class="text-center py-24 border-4 border-dashed border-slate-50 rounded-[3rem] mt-4">
-                        <p class="text-slate-300 font-black uppercase tracking-[0.3em] text-sm">Awaiting Urban Integration</p>
+                    <div id="empty-workspace-msg" class="text-center py-20 border-4 border-dashed border-slate-50 rounded-[3rem] mt-4">
+                        <p class="text-slate-300 font-black uppercase tracking-[0.3em] text-sm text-center">Awaiting Urban Integration</p>
                     </div>
 
                     <div class="mt-12 pt-10 border-t border-slate-100 flex justify-end">
-                        <button onclick="finalSubmit()" class="bg-slate-900 text-white px-20 py-6 rounded-3xl font-black text-2xl hover:bg-emerald-600 transition-all shadow-2xl hover:scale-105 active:scale-95 group">
+                        <button onclick="finalSubmit()" class="w-full md:w-auto bg-slate-900 text-white px-10 md:px-20 py-5 md:py-6 rounded-2xl md:rounded-3xl font-black text-xl md:text-2xl hover:bg-emerald-600 transition-all shadow-2xl hover:scale-105 active:scale-95 group text-center">
                             FINALIZE CITY
-                            <svg class="w-6 h-6 inline-block ml-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                         </button>
                     </div>
                 </div>
@@ -196,155 +270,113 @@
 
             <!-- Phase 3: Dashboard View -->
             <div id="step-3" class="hidden fade-in space-y-8">
+                <!-- Header and Gauge -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 flex flex-col justify-center bg-white p-12 rounded-[3rem] shadow-sm border border-slate-200">
+                    <div class="lg:col-span-2 flex flex-col justify-center bg-white p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-200">
                         <p class="text-xs font-black text-emerald-500 uppercase tracking-widest mb-2">Analysis Phase: Complete</p>
-                        <h2 class="text-5xl font-black text-slate-900 leading-none mb-6">Strategic Audit</h2>
-                        <p class="text-slate-400 text-base leading-relaxed max-w-lg mb-8">Performance report for planner <strong class="text-slate-700 italic"><span id="dash-player-name"></span></strong>. Alignment is benchmarked against the sustainable 35-30-35 distribution logic.</p>
+                        <h2 class="text-3xl md:text-5xl font-black text-slate-900 leading-none mb-6">Strategic Audit</h2>
+                        <p class="text-slate-400 text-sm md:text-base leading-relaxed max-w-lg mb-8">Performance report for planner <strong class="text-slate-700 italic"><span id="dash-player-name"></span></strong>. Alignment is benchmarked against the sustainable 35-30-35 distribution logic.</p>
                         
                         <div class="pt-8 border-t border-slate-100">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Current City Composition (IDs)</p>
-                            <div id="selected-ids-summary" class="flex flex-wrap gap-3"></div>
+                            <div id="selected-ids-summary" class="flex flex-wrap gap-2 md:gap-3"></div>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 rounded-[3rem] p-12 flex flex-col items-center justify-center text-center text-white shadow-2xl relative overflow-hidden">
+                    <div class="bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-12 flex flex-col items-center justify-center text-center text-white shadow-2xl relative overflow-hidden">
                         <div class="absolute inset-0 bg-emerald-500 opacity-10 pointer-events-none" style="mask-image: radial-gradient(circle, black, transparent);"></div>
-                        <p class="text-xs font-black text-emerald-400 uppercase tracking-widest mb-10 z-10">Equilibrium Gauge</p>
+                        <p class="text-xs font-black text-emerald-400 uppercase tracking-widest mb-10 z-10 text-center">Equilibrium Gauge</p>
                         <div class="relative inline-flex items-center justify-center z-10">
-                            <svg class="w-48 h-48 transform -rotate-90">
-                                <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="14" fill="transparent" class="text-slate-800" />
+                            <svg class="w-40 h-40 md:w-48 md:h-48 transform -rotate-90">
+                                <circle cx="80" cy="80" r="74" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-800 lg:cx-96 lg:cy-96 lg:r-88 lg:stroke-width-14" />
                                 <circle id="alignment-circle" cx="96" cy="96" r="88" stroke="currentColor" stroke-width="14" fill="transparent" 
                                         stroke-dasharray="552.9" stroke-dashoffset="552.9" class="text-emerald-500 transition-all duration-1000 ease-out" />
                             </svg>
-                            <span id="alignment-score" class="absolute text-5xl font-black italic tracking-tighter">0%</span>
+                            <span id="alignment-score" class="absolute text-4xl md:text-5xl font-black italic tracking-tighter">0%</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Scores -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="metric-card p-10 rounded-[2rem] border-b-8 border-slate-900 text-center">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Net Valuation</p>
-                        <div id="final-result" class="text-5xl font-black text-slate-900">0</div>
-                        <p id="bonus-notif" class="text-[9px] text-emerald-600 font-black hidden mt-4 bg-emerald-50 py-1 px-3 rounded-full inline-block">STRATEGIC BONUS APPLIED</p>
+                    <div class="metric-card p-6 md:p-10 rounded-[2rem] border-b-8 border-slate-900 text-center">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Net Valuation</p>
+                        <div id="final-result" class="text-4xl md:text-5xl font-black text-slate-900 text-center">0</div>
+                        <p id="bonus-notif" class="text-[9px] text-emerald-600 font-black hidden mt-4 bg-emerald-50 py-1 px-3 rounded-full inline-block text-center">STRATEGIC BONUS APPLIED</p>
                     </div>
-                    <div class="metric-card p-10 rounded-[2rem] border-b-8 border-emerald-500">
-                        <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Environment</p>
-                        <div id="total-env" class="text-4xl font-black text-slate-800">0</div>
+                    <div class="metric-card p-6 md:p-10 rounded-[2rem] border-b-8 border-emerald-500 text-center">
+                        <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2 text-center">Environment</p>
+                        <div id="total-env" class="text-3xl md:text-4xl font-black text-slate-800 text-center">0</div>
                     </div>
-                    <div class="metric-card p-10 rounded-[2rem] border-b-8 border-amber-500">
-                        <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-2">Economic</p>
-                        <div id="total-eco" class="text-4xl font-black text-slate-800">0</div>
+                    <div class="metric-card p-6 md:p-10 rounded-[2rem] border-b-8 border-amber-500 text-center">
+                        <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-2 text-center">Economic</p>
+                        <div id="total-eco" class="text-3xl md:text-4xl font-black text-slate-800 text-center">0</div>
                     </div>
-                    <div class="metric-card p-10 rounded-[2rem] border-b-8 border-indigo-500">
-                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">Social</p>
-                        <div id="total-soc" class="text-4xl font-black text-slate-800">0</div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-200">
-                        <h3 class="font-black text-slate-900 mb-10 text-[11px] uppercase tracking-[0.3em] text-center border-b pb-6">Variance Audit</h3>
-                        <div class="space-y-10">
-                            <div class="space-y-4">
-                                <div class="flex justify-between text-[11px] font-black">
-                                    <span class="text-amber-500 uppercase">ECONOMY (30%)</span>
-                                    <span id="diff-eco" class="font-mono text-sm"></span>
-                                </div>
-                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                                    <div id="bar-eco-actual" class="h-full bg-amber-400 shadow-inner transition-all duration-1000"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="flex justify-between text-[11px] font-black">
-                                    <span class="text-indigo-500 uppercase">SOCIAL (35%)</span>
-                                    <span id="diff-soc" class="font-mono text-sm"></span>
-                                </div>
-                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                                    <div id="bar-soc-actual" class="h-full bg-indigo-400 shadow-inner transition-all duration-1000"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <div class="flex justify-between text-[11px] font-black">
-                                    <span class="text-emerald-500 uppercase">ECOLOGICAL (35%)</span>
-                                    <span id="diff-env" class="font-mono text-sm"></span>
-                                </div>
-                                <div class="h-4 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
-                                    <div id="bar-env-actual" class="h-full bg-emerald-400 shadow-inner transition-all duration-1000"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-2 bg-white p-12 rounded-[2.5rem] shadow-sm border border-slate-200">
-                        <h3 class="font-black text-slate-900 mb-8 text-[11px] uppercase tracking-[0.3em] border-b pb-6">Detected Strategic Linkages</h3>
-                        <div id="active-linkages-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                    <div class="metric-card p-6 md:p-10 rounded-[2rem] border-b-8 border-indigo-500 text-center">
+                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2 text-center">Social</p>
+                        <div id="total-soc" class="text-3xl md:text-4xl font-black text-slate-800 text-center">0</div>
                     </div>
                 </div>
 
-                <div class="bg-slate-900 p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+                <!-- Review Section -->
+                <div class="bg-slate-900 p-8 md:p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
                     <h3 class="font-black text-2xl mb-8 text-emerald-400 tracking-tighter uppercase">Comprehensive Review</h3>
-                    <div id="detailed-analysis" class="space-y-8 text-slate-300 font-medium leading-relaxed text-lg"></div>
-                    <div class="mt-12 pt-10 border-t border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div>
-                            <p class="text-[10px] font-black text-slate-600 uppercase mb-3 tracking-[0.4em]">Development DNA</p>
-                            <p id="major-impact-tag" class="text-4xl font-black uppercase text-white tracking-tighter italic">Analyzing...</p>
-                        </div>
+                    <div id="detailed-analysis" class="space-y-8 text-slate-300 font-medium leading-relaxed text-sm md:text-lg"></div>
+                    <div class="mt-12 pt-10 border-t border-slate-800">
+                        <p class="text-[10px] font-black text-slate-600 uppercase mb-3 tracking-[0.4em]">Development DNA</p>
+                        <p id="major-impact-tag" class="text-2xl md:text-4xl font-black uppercase text-white tracking-tighter italic">Analyzing...</p>
                     </div>
                 </div>
 
+                <!-- Detailed Breakdown Table -->
                 <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
                     <div class="px-8 py-6 bg-slate-50 border-b border-slate-100">
                         <h3 class="font-black text-slate-800 text-xs uppercase tracking-widest">Itemized Valuation</h3>
                     </div>
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b">
-                            <tr>
-                                <th class="px-8 py-5">ID</th>
-                                <th class="px-8 py-5">Infrastructure Component</th>
-                                <th class="px-8 py-5 text-center text-emerald-600">Environmental</th>
-                                <th class="px-8 py-5 text-center text-amber-600">Economic</th>
-                                <th class="px-8 py-5 text-center text-indigo-600">Society</th>
-                                <th class="px-8 py-5 text-right">Impact Sum</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dashboard-rows" class="divide-y text-[13px] font-medium text-slate-600"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left min-w-[700px]">
+                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b">
+                                <tr>
+                                    <th class="px-8 py-5">ID</th>
+                                    <th class="px-8 py-5">Infrastructure Component</th>
+                                    <th class="px-8 py-5 text-center text-emerald-600">Environmental</th>
+                                    <th class="px-8 py-5 text-center text-amber-600">Economic</th>
+                                    <th class="px-8 py-5 text-center text-indigo-600">Society</th>
+                                    <th class="px-8 py-5 text-right">Impact Sum</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-rows" class="divide-y text-[13px] font-medium text-slate-600"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <!-- Library View: Strategic Linkages -->
             <div id="step-library" class="hidden fade-in space-y-6">
-                <div class="bg-white p-12 rounded-[3rem] shadow-sm border border-slate-200">
+                <div class="bg-white p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-200">
                     <div class="mb-12 border-b pb-10">
-                        <h2 class="text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4">Strategic Pairings</h2>
-                        <p class="text-slate-400 font-medium text-lg">Cross-pillar combinations that multiply net city valuation.</p>
+                        <h2 class="text-3xl md:text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4">Strategic Pairings</h2>
+                        <p class="text-slate-400 font-medium text-sm md:text-lg">Cross-pillar combinations that multiply net city valuation.</p>
                     </div>
-                    <div id="library-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-h-[65vh] overflow-y-auto custom-scrollbar pr-6 pb-12"></div>
+                    <div id="library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[65vh] overflow-y-auto custom-scrollbar pr-2 md:pr-6 pb-12"></div>
                 </div>
             </div>
 
             <!-- Infrastructure Library View -->
-            <div id="step-infra-library" class="hidden fade-in space-y-6">
-                <div class="bg-white p-12 rounded-[3rem] shadow-sm border border-slate-200">
+            <div id="step-infra-library" class="hidden fade-in space-y-6 px-4">
+                <div class="bg-white p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-12 border-b pb-10">
                         <div>
-                            <h2 class="text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4">Master Database</h2>
-                            <p class="text-slate-400 font-medium text-lg">Full catalog of 65 urban components.</p>
+                            <h2 class="text-3xl md:text-5xl font-black text-slate-900 italic tracking-tighter leading-none mb-4">Master Database</h2>
+                            <p class="text-slate-400 font-medium text-sm md:text-lg">Click any card to view detailed justifications.</p>
                         </div>
                         <div class="flex flex-col sm:flex-row gap-6 w-full md:w-auto">
-                            <input type="text" id="infra-search" onkeyup="filterInfraLibrary()" placeholder="Filter by name/ID..." 
-                                   class="px-8 py-5 rounded-[1.5rem] border-2 border-slate-100 bg-slate-50 focus:bg-white focus:ring-8 focus:ring-emerald-50 focus:border-emerald-500 outline-none text-base font-bold shadow-sm sm:w-80 transition-all">
-                            <select id="infra-sort" onchange="sortInfraLibrary()" class="px-8 py-5 rounded-[1.5rem] border-2 border-slate-100 bg-slate-50 outline-none text-base font-bold cursor-pointer transition-all hover:border-emerald-200">
-                                <option value="id">Index ID</option>
-                                <option value="env">Environmental Impact</option>
-                                <option value="eco">Economic Impact</option>
-                                <option value="soc">Social Impact</option>
-                            </select>
+                            <input type="text" id="infra-search" onkeyup="filterInfraLibrary()" placeholder="Filter components..." 
+                                   class="px-6 py-4 rounded-[1.5rem] border-2 border-slate-100 bg-slate-50 focus:bg-white focus:ring-8 focus:ring-emerald-50 focus:border-emerald-500 outline-none text-base font-bold shadow-sm sm:w-64 transition-all">
                         </div>
                     </div>
                     
-                    <div id="infra-library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto custom-scrollbar pr-6 pb-12"></div>
+                    <div id="infra-library-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 md:pr-6 pb-12"></div>
                 </div>
             </div>
 
@@ -352,72 +384,73 @@
     </div>
 
     <script>
+        // Data containing all 65 elements and their justifications
         const masterData = [
-            { id: 1, name: "Rooftop Solar and Solar Farms", env: 75, eco: 60, soc: 55 },
-            { id: 2, name: "River Restoration Projects", env: 85, eco: 35, soc: 65 },
-            { id: 3, name: "Urban Forest", env: 80, eco: 30, soc: 70 },
-            { id: 4, name: "Water Recycling", env: 70, eco: 45, soc: 60 },
-            { id: 5, name: "Smart Water Grid", env: 55, eco: 45, soc: 65 },
-            { id: 6, name: "Rainwater Harvesting", env: 65, eco: 40, soc: 60 },
-            { id: 7, name: "Pocket Parks", env: 50, eco: 25, soc: 75 },
-            { id: 8, name: "Decomposting Facilities", env: 65, eco: 30, soc: 40 },
-            { id: 9, name: "Waste Processing", env: 40, eco: 35, soc: 45 },
-            { id: 10, name: "Waste-to-Energy", env: 25, eco: 55, soc: 30 },
-            { id: 11, name: "Subsidies for Afforestation", env: 80, eco: -25, soc: 55 },
-            { id: 12, name: "Biofuels", env: 20, eco: 40, soc: 30 },
-            { id: 13, name: "Carbon Capture Facilities", env: 70, eco: -20, soc: 30 },
-            { id: 14, name: "Carbon Tax System", env: 60, eco: -30, soc: -20 },
-            { id: 15, name: "Mining", env: -85, eco: 75, soc: -15 },
-            { id: 16, name: "Renewable Energy Farms", env: 80, eco: 55, soc: 45 },
-            { id: 17, name: "Public Transport", env: 55, eco: 45, soc: 80 },
-            { id: 18, name: "Water Management", env: 60, eco: 40, soc: 70 },
-            { id: 19, name: "EV Charging Infrastructure", env: 65, eco: 40, soc: 55 },
-            { id: 20, name: "Railway Stations", env: 30, eco: 50, soc: 70 },
-            { id: 21, name: "Composting + Biomethanation", env: 70, eco: 30, soc: 40 },
-            { id: 22, name: "Decentralised Waste Processing", env: 55, eco: 30, soc: 45 },
-            { id: 23, name: "Cold Storage (Food Waste)", env: 40, eco: 35, soc: 50 },
-            { id: 24, name: "Grid Infrastructure", env: -10, eco: 70, soc: 60 },
-            { id: 25, name: "Water Supply", env: -15, eco: 50, soc: 85 },
-            { id: 26, name: "Waste-to-Energy Plant", env: 20, eco: 50, soc: 30 },
-            { id: 27, name: "Business Parks", env: -20, eco: 70, soc: 50 },
-            { id: 28, name: "Power Supply (Grid)", env: -25, eco: 65, soc: 55 },
-            { id: 29, name: "Shopping Malls", env: -45, eco: 65, soc: 50 },
-            { id: 30, name: "Sea / Air Ports", env: -60, eco: 85, soc: 40 },
-            { id: 31, name: "Data Centres", env: -50, eco: 75, soc: 35 },
-            { id: 32, name: "Industries", env: -70, eco: 80, soc: 40 },
-            { id: 33, name: "Construction Sites", env: -65, eco: 60, soc: 20 },
-            { id: 34, name: "Fuel Supply (Pipelines)", env: -55, eco: 45, soc: 20 },
-            { id: 35, name: "Oil & Gas Fields", env: -90, eco: 70, soc: -20 },
-            { id: 36, name: "Affordable Housing Complexes", env: 35, eco: 85, soc: 95 },
-            { id: 37, name: "Government Hospitals", env: -20, eco: 75, soc: 95 },
-            { id: 38, name: "Primary Health Care Clinics", env: -5, eco: 70, soc: 90 },
-            { id: 39, name: "Mental Wellness Centers", env: 0, eco: 65, soc: 90 },
-            { id: 40, name: "Government Schools", env: 10, eco: 85, soc: 95 },
-            { id: 41, name: "Universities & Colleges", env: 5, eco: 90, soc: 80 },
-            { id: 42, name: "Public Libraries", env: 10, eco: 55, soc: 70 },
-            { id: 43, name: "Skill Training Centers", env: 5, eco: 95, soc: 85 },
-            { id: 44, name: "Police Stations", env: -5, eco: 45, soc: 60 },
-            { id: 45, name: "Fire Stations & Ambulance Hubs", env: 0, eco: 60, soc: 85 },
-            { id: 46, name: "Smart Street Lighting", env: 20, eco: 70, soc: 75 },
-            { id: 47, name: "CCTV Safety Network", env: -10, eco: 50, soc: 55 },
-            { id: 48, name: "Safe Pedestrian Walkways", env: 70, eco: 80, soc: 80 },
-            { id: 49, name: "Public Transport Systems", env: 90, eco: 100, soc: 90 },
-            { id: 50, name: "Women Safety Help Centers", env: 0, eco: 60, soc: 85 },
-            { id: 51, name: "City Parks", env: 90, eco: 60, soc: 90 },
-            { id: 52, name: "Pocket Parks", env: 80, eco: 40, soc: 75 },
-            { id: 53, name: "Urban Forest Recreation Zones", env: 95, eco: 55, soc: 85 },
-            { id: 54, name: "Riverfront / Lakeside Promenades", env: 75, eco: 80, soc: 80 },
-            { id: 55, name: "Public Plazas & Open Spaces", env: 40, eco: 70, soc: 70 },
-            { id: 56, name: "Community Halls / Civic Centers", env: 5, eco: 50, soc: 75 },
-            { id: 57, name: "Children’s Playgrounds", env: 20, eco: 45, soc: 80 },
-            { id: 58, name: "Sports Complexes & Fitness Parks", env: 20, eco: 75, soc: 80 },
-            { id: 59, name: "Jogging & Cycling Tracks", env: 75, eco: 75, soc: 75 },
-            { id: 60, name: "Childcare / Daycare Centers", env: 0, eco: 90, soc: 90 },
-            { id: 61, name: "Old Age Care Homes", env: 0, eco: 45, soc: 75 },
-            { id: 62, name: "Disabled Access Centers", env: 10, eco: 70, soc: 90 },
-            { id: 63, name: "Food Banks / Community Kitchens", env: -5, eco: 50, soc: 85 },
-            { id: 64, name: "Disaster Relief Shelters", env: 10, eco: 55, soc: 80 },
-            { id: 65, name: "Citizen Help Centers", env: 0, eco: 60, soc: 70 }
+            { id: 1, name: "Rooftop Solar and Solar Farms", env: 75, eco: 60, soc: 55, envReason: "Generates clean energy with zero operational emissions and minimal land disruption especially on rooftops", ecoReason: "High return through energy savings, grid selling revenue and large scale job creation in installation and maintenance", socReason: "Reduces household energy bills, improves air quality and gives communities energy independence" },
+            { id: 2, name: "River Restoration Projects", env: 85, eco: 35, soc: 65, envReason: "Rebuilds entire ecosystems, purifies water naturally, prevents floods and restores aquatic biodiversity at scale", ecoReason: "Boosts tourism, supports fishing industries and dramatically cuts future flood damage and repair costs", socReason: "Clean rivers provide recreation, improve neighbourhood aesthetics and directly protect public health" },
+            { id: 3, name: "Urban Forest", env: 80, eco: 30, soc: 70, envReason: "Sequesters large amounts of carbon, cools the city naturally, absorbs stormwater and supports rich biodiversity", ecoReason: "Reduces city cooling costs over time, enables eco-tourism and has long term timber and green economy value", socReason: "Provides recreation space, reduces stress, buffers noise, improves air quality and builds community pride" },
+            { id: 4, name: "Water Recycling", env: 70, eco: 45, soc: 60, envReason: "Prevents wastewater from polluting rivers and groundwater and significantly reduces freshwater extraction demand", ecoReason: "Creates a reliable secondary water supply that cuts costly freshwater procurement and treatment expenses", socReason: "Ensures long term water security, supports agriculture and industry and reduces drought vulnerability for all" },
+            { id: 5, name: "Smart Water Grid", env: 55, eco: 45, soc: 65, envReason: "Reduces water wastage through real time leak detection and optimised distribution conserving a scarce resource", ecoReason: "Cuts infrastructure repair costs, reduces water losses in supply chain and improves utility revenue efficiency", socReason: "Reliable and efficient water delivery reduces outages and improves daily quality of life for all citizens" },
+            { id: 6, name: "Rainwater Harvesting", env: 65, eco: 40, soc: 60, envReason: "Reduces surface runoff, prevents urban flooding and decreases dependence on groundwater and municipal supply", ecoReason: "Lowers water bills for households and businesses and reduces pressure on expensive municipal water systems", socReason: "Provides supplementary water access during dry seasons and improves water security for lower income households" },
+            { id: 7, name: "Pocket Parks", env: 50, eco: 25, soc: 75, envReason: "Absorbs CO2, supports local biodiversity and reduces the urban heat island effect across dense city areas", ecoReason: "Increases surrounding property values and drives foot traffic and spending to nearby local businesses", socReason: "Improves mental health, encourages community interaction and benefits all age groups within easy walking distance" },
+            { id: 8, name: "Decomposting Facilities", env: 65, eco: 30, soc: 40, envReason: "Diverts organic waste from landfills, reduces methane emissions and returns nutrients back into the soil", ecoReason: "Generates revenue through compost product sales and waste gate fees though limited scale keeps profits modest", socReason: "Reduces landfill burden on communities, supports urban farming and creates meaningful green collar employment" },
+            { id: 9, name: "Waste Processing", env: 40, eco: 35, soc: 45, envReason: "Reduces landfill overflow and prevents soil and water contamination from poorly managed waste accumulation", ecoReason: "Generates income through recyclable material recovery and waste management jobs at the municipal level", socReason: "Cleaner cities with reduced disease spread and better neighbourhood environments improve resident quality of life" },
+            { id: 10, name: "Waste-to-Energy", env: 25, eco: 55, soc: 30, envReason: "Diverts waste from landfills but combustion releases emissions requiring careful management to limit air quality damage", ecoReason: "Generates energy revenue and collects tipping fees from waste operators making it commercially self sustaining", socReason: "Reduces visible waste accumulation but nearby communities often raise concerns about odour and air quality" },
+            { id: 11, name: "Subsidies for Afforestation", env: 80, eco: -25, soc: 55, envReason: "Planting trees at scale delivers major carbon sequestration, soil stabilisation and biodiversity restoration benefits", ecoReason: "Significant government expenditure with very long delayed financial returns that are difficult to quantify short term", socReason: "Improves citywide air quality, creates green jobs and builds strong public goodwill around environmental responsibility" },
+            { id: 12, name: "Biofuels", env: 20, eco: 40, soc: 30, envReason: "Cleaner burning than fossil fuels but crop cultivation competes with food production and can drive deforestation", ecoReason: "Reduces fuel import dependency and grows the agricultural sector but food price pressure limits economic gains", socReason: "Creates rural employment and diversifies energy supply but upward pressure on food prices reduces social benefit" },
+            { id: 13, name: "Carbon Capture Facilities", env: 70, eco: -20, soc: 30, envReason: "Directly removes CO2 from the atmosphere delivering strong environmental benefit especially near industrial zones", ecoReason: "Very high construction and operating costs with limited direct revenue streams make it economically negative near term", socReason: "Communities benefit from cleaner air but facilities are expensive, space consuming and invisible to daily life" },
+            { id: 14, name: "Carbon Tax System", env: 60, eco: -30, soc: -20, envReason: "Effectively discourages emissions and drives industries toward cleaner practices through financial penalty mechanisms", ecoReason: "Businesses face higher operating costs and may reduce investment or relocate causing short term economic contraction", socReason: "Increased cost of goods and energy hits lower income groups hardest without proper rebate or relief systems in place" },
+            { id: 15, name: "Mining", env: -85, eco: 75, soc: -15, envReason: "Causes deforestation, soil erosion, water contamination and severe habitat destruction across large land areas", ecoReason: "High economic value through raw material extraction feeding construction, manufacturing and technology sectors", socReason: "Health hazards for nearby communities, population displacement and long term land degradation outweigh job creation gains" },
+            { id: 16, name: "Renewable Energy Farms", env: 80, eco: 55, soc: 45, envReason: "Generates clean electricity with zero operational emissions, reduces fossil fuel dependence, and has minimal long-term ecological footprint beyond land use", ecoReason: "Creates thousands of jobs in installation, maintenance, and operations while reducing national energy import costs and boosting energy independence", socReason: "Improves air quality citywide, lowers household energy costs over time, and provides stable power to communities reducing outages" },
+            { id: 17, name: "Public Transport", env: 55, eco: 45, soc: 80, envReason: "Significantly cuts private vehicle usage, reducing carbon emissions, traffic congestion, and urban air pollution across the city", ecoReason: "Reduces per-capita commute costs, generates fare revenue, and lowers road maintenance expenses by reducing vehicle load", socReason: "Provides affordable mobility to all income groups, reduces commute stress, improves accessibility for elderly and differently abled citizens" },
+            { id: 18, name: "Water Management", env: 60, eco: 40, soc: 70, envReason: "Controls flooding, prevents waterway pollution, enables water recycling, and maintains healthy groundwater levels for ecosystems", ecoReason: "Reduces costs from flood damage, water loss, and infrastructure repair while enabling water reuse for agriculture and industry", socReason: "Prevents waterborne disease, ensures reliable clean water access, protects homes from flood damage, and improves neighbourhood sanitation" },
+            { id: 19, name: "EV Charging Infrastructure", env: 65, eco: 40, soc: 55, envReason: "Enables mass transition from fossil fuel vehicles to electric, directly cutting transport sector carbon emissions and urban air pollution", ecoReason: "Attracts EV-related businesses, generates electricity revenue, reduces fuel import dependency, and creates installation and maintenance jobs", socReason: "Makes EV adoption accessible to more residents, reduces noise and air pollution in cities, and supports greener daily commuting habits" },
+            { id: 20, name: "Railway Stations", env: 30, eco: 50, soc: 70, envReason: "Shifts passenger load from road to rail, significantly cutting per-journey carbon emissions and reducing highway congestion", ecoReason: "Boosts local commercial activity around stations, supports property value growth, and enables efficient long-distance freight and passenger movement", socReason: "Provides affordable, reliable, and safe mass transit, connects distant communities, and reduces commute time for working populations" },
+            { id: 21, name: "Composting + Biomethanation", env: 70, eco: 30, soc: 40, envReason: "Converts organic waste into compost and biogas with near-zero emissions, diverts waste from landfills, and returns nutrients to soil naturally", ecoReason: "Generates revenue through compost product sales and biogas energy, reduces municipal landfill costs, and lowers waste transport expenses", socReason: "Reduces landfill odour and pollution in communities, supports urban farming with compost output, and creates local green collar employment" },
+            { id: 22, name: "Decentralised Waste Processing", env: 55, eco: 30, soc: 45, envReason: "Reduces landfill dependency, cuts waste transport emissions by processing locally, and prevents soil and groundwater contamination from accumulated waste", ecoReason: "Lowers waste logistics costs, recovers recyclable materials for resale, and generates local employment in waste sorting and processing operations", socReason: "Keeps neighbourhoods cleaner, reduces disease risk from waste accumulation, and gives communities direct control over local waste impact" },
+            { id: 23, name: "Cold Storage (Food Waste)", env: 40, eco: 35, soc: 50, envReason: "Reduces methane emissions from food rotting in landfills, lowers agricultural pressure by making existing food supply go further", ecoReason: "Reduces losses across the food supply chain, lowers costs for retailers and distributors, and improves efficiency of agricultural investment", socReason: "Improves food security and affordability for city residents, reduces hunger risk, and supports more equitable food distribution across communities" },
+            { id: 24, name: "Grid Infrastructure", env: -10, eco: 70, soc: 60, envReason: "Minor environmental cost from transmission line land use and energy losses during distribution, but enables cleaner energy delivery at scale", ecoReason: "Foundational economic enabler — every business, industry, and household depends on reliable grid connectivity for productivity and growth", socReason: "Electricity access is fundamental to modern life, powering homes, hospitals, schools, and emergency services across the entire city" },
+            { id: 25, name: "Water Supply", env: -15, eco: 50, soc: 85, envReason: "Slight environmental cost from groundwater extraction and chemical treatment processes, but essential for preventing worse public health outcomes", ecoReason: "Supports all economic activity from households to heavy industry, enables agriculture, and generates steady utility revenue for the city", socReason: "Clean water access is a basic human right — directly prevents waterborne disease, supports hygiene, and is critical to public health and dignity" },
+            { id: 26, name: "Waste-to-Energy Plant", env: 20, eco: 50, soc: 30, envReason: "Diverts waste from landfills reducing methane, but combustion releases particulates and CO2 requiring careful emission controls to limit air impact", ecoReason: "Generates sellable electricity and collects tipping fees from waste operators, providing dual revenue streams from what was previously a cost burden", socReason: "Reduces visible waste in the city but communities near plants raise valid concerns about air quality, odour, and long-term health implications" },
+            { id: 27, name: "Business Parks", env: -20, eco: 70, soc: 50, envReason: "Moderate land use and increased commuter traffic generate some pollution and habitat loss on the urban fringe", ecoReason: "Strong job creation hub, attracts corporate investment, generates commercial tax revenue, and anchors professional sector growth in the city", socReason: "Provides concentrated employment opportunities, reduces long commutes for office workers, and supports surrounding retail and service businesses" },
+            { id: 28, name: "Power Supply (Grid)", env: -25, eco: 65, soc: 55, envReason: "Conventional fossil fuel power generation produces moderate CO2 and particulate emissions, contributing to urban air pollution and climate impact", ecoReason: "Absolutely essential economic infrastructure — without reliable power supply no industry, commerce, or service sector can operate effectively", socReason: "Reliable electricity directly improves living standards, powers healthcare and education facilities, and is critical for safety and daily convenience" },
+            { id: 29, name: "Shopping Malls", env: -45, eco: 65, soc: 50, envReason: "High energy consumption for lighting and cooling, large impervious surface areas causing runoff, and significant packaging and retail waste generation", ecoReason: "Major retail economic driver generating high tax revenue, thousands of direct and indirect jobs, and attracting consumer spending into the city", socReason: "Provides convenient retail and leisure access for residents but car-dependent design excludes those without vehicles and contributes to congestion" },
+            { id: 30, name: "Sea / Air Ports", env: -60, eco: 85, soc: 40, envReason: "Among the highest emission sources — ship and aircraft fuel combustion, coastal habitat disruption, noise pollution, and significant carbon footprint per journey", ecoReason: "Top economic performer — enables international trade, tourism, logistics, and supply chain connectivity that drives city-level and national economic growth", socReason: "Connects the city to global markets and destinations but surrounding communities suffer from persistent noise, air pollution, and heavy traffic" },
+            { id: 31, name: "Data Centres", env: -50, eco: 75, soc: 35, envReason: "Consume enormous amounts of electricity and water for cooling, generating significant indirect carbon emissions and straining local energy infrastructure", ecoReason: "Highly valuable in the digital economy, attracting tech investment, creating high-paying jobs, and generating substantial corporate tax revenue", socReason: "Benefits society indirectly through enabling digital services, cloud storage, and connectivity but has minimal visible positive impact on daily community life" },
+            { id: 32, name: "Industries", env: -70, eco: 80, soc: 40, envReason: "Heavy polluter — factory emissions, industrial effluents, land degradation, and hazardous waste significantly damage air, water, and soil quality", ecoReason: "Largest economic contributor through manufacturing output, mass employment, export earnings, and supply chain activity across multiple sectors", socReason: "Creates large-scale employment and drives urban development but surrounding communities face serious air and water quality degradation impacting health" },
+            { id: 33, name: "Construction Sites", env: -65, eco: 60, soc: 20, envReason: "Short-term but severe impact — dust, noise, land clearing, demolition waste, and machinery emissions cause significant localised environmental disruption", ecoReason: "Strong economic driver through real estate development, construction employment, materials supply chains, and long-term property value creation", socReason: "Highly disruptive to existing communities during active construction phase with noise and dust, though completed buildings eventually serve residents" },
+            { id: 34, name: "Fuel Supply (Pipelines)", env: -55, eco: 45, soc: 20, envReason: "High risk of leaks and spills causing soil and groundwater contamination, plus continuous fossil fuel transport perpetuates carbon-intensive energy systems", ecoReason: "Moderate economic value as a logistics enabler for fuel distribution to industries, power plants, and transport networks across the city", socReason: "Society depends on the fuel being delivered but gains little directly from the pipeline itself, with safety risk near communities keeping score low" },
+            { id: 35, name: "Oil & Gas Fields", env: -90, eco: 70, soc: -20, envReason: "Worst environmental performer — extraction causes severe habitat destruction, water contamination, methane leaks, and is a primary driver of long-term climate damage", ecoReason: "High short-term revenue through extraction royalties and fuel sales, but volatile global prices, finite reserves, and cleanup costs limit long-term value", socReason: "Only negative society score — health hazards near extraction sites, community displacement, chronic pollution exposure, and resource depletion harm future generations" },
+            { id: 36, name: "Affordable Housing Complexes", env: 35, eco: 85, soc: 95, envReason: "Compact affordable housing can reduce urban sprawl and commute emissions; poorly planned sprawl developments can do opposite.", ecoReason: "Reduces worker housing burden, improves labor participation, lowers turnover, increases access to city jobs. High housing costs reduce economic mobility.", socReason: "Stable housing strongly linked to better mental health, children’s education continuity, family stability, lower homelessness risk." },
+            { id: 37, name: "Government Hospitals", env: -20, eco: 75, soc: 95, envReason: "Hospitals are energy-intensive buildings and produce biomedical waste, but greener hospital design can reduce this.", ecoReason: "Healthier workforce means fewer sick days and higher productivity; untreated disease imposes large economic costs.", socReason: "Direct life-saving effect: emergency care, maternal care, surgery, epidemic response, mortality reduction." },
+            { id: 38, name: "Primary Health Care Clinics", env: -5, eco: 70, soc: 90, envReason: "Smaller footprint than tertiary hospitals; lower energy intensity per facility.", ecoReason: "Preventive care is cheaper than hospital treatment; vaccination and early diagnosis save future costs.", socReason: "Better rural/local access, maternal care, immunization, chronic disease management." },
+            { id: 39, name: "Mental Wellness Centers", env: 0, eco: 65, soc: 90, envReason: "Low direct environmental footprint.", ecoReason: "Depression/anxiety reduce productivity and increase absenteeism; treatment improves workforce output.", socReason: "Reduces suicide risk, addiction relapse, domestic stress, family breakdown, loneliness." },
+            { id: 40, name: "Government Schools", env: 10, eco: 85, soc: 95, envReason: "Moderate building/resource use; can be improved with green campuses.", ecoReason: "Education raises lifetime earnings, tax base, innovation capacity, GDP growth. Human capital is one of the strongest long-term economic drivers.", socReason: "Literacy, social mobility, reduced inequality, civic participation." },
+            { id: 41, name: "Universities & Colleges", env: 5, eco: 90, soc: 80, envReason: "Medium campus footprint; transit-oriented campuses reduce impacts.", ecoReason: "Innovation ecosystems: patents, startups, research grants, skilled labor pipelines. Strong correlation with knowledge-economy growth.", socReason: "Higher opportunity, mobility, advanced skills, social development." },
+            { id: 42, name: "Public Libraries", env: 10, eco: 55, soc: 70, envReason: "Low operating footprint compared to many civic facilities.", ecoReason: "Improves job search, digital inclusion, literacy, entrepreneurship support.", socReason: "Quiet public spaces, inclusive learning access, community trust, lifelong learning." },
+            { id: 43, name: "Skill Training Centers", env: 5, eco: 95, soc: 85, envReason: "Low-medium footprint.", ecoReason: "Strong direct employment effects by matching labor supply to industry demand.", socReason: "Reduces unemployment stress, youth disengagement, poverty traps." },
+            { id: 44, name: "Police Stations", env: -5, eco: 45, soc: 60, envReason: "Fleet fuel use + building energy.", ecoReason: "Lower theft and crime can protect commerce, insurance costs, business confidence.", socReason: "Safety gains, but score moderated by trust, fairness, misuse concerns." },
+            { id: 45, name: "Fire Stations & Ambulance Hubs", env: 0, eco: 60, soc: 85, envReason: "Vehicle fuel use, but resilience benefit offsets indirect losses.", ecoReason: "Prevent asset losses from fires/disasters; emergency response protects economic continuity.", socReason: "Saves lives in fires, crashes, disasters, cardiac emergencies." },
+            { id: 46, name: "Smart Street Lighting", env: 20, eco: 70, soc: 75, envReason: "LED smart systems reduce electricity use significantly vs legacy sodium lamps.", ecoReason: "Supports night economy, retail hours, safer commercial streets.", socReason: "Better perceived safety, especially for women, elderly, pedestrians." },
+            { id: 47, name: "CCTV Safety Network", env: -10, eco: 50, soc: 55, envReason: "Electronics lifecycle + energy use.", ecoReason: "Can reduce theft/vandalism in some zones; protects assets.", socReason: "Mixed effects: security gains vs privacy concerns and trust issues." },
+            { id: 48, name: "Safe Pedestrian Walkways", env: 70, eco: 80, soc: 80, envReason: "Replaces short car trips; lower emissions and congestion.", ecoReason: "Walkable commercial corridors increase footfall and local retail spending.", socReason: "Fewer pedestrian injuries, more physical activity, independence for children/elderly." },
+            { id: 49, name: "Public Transport Systems", env: 90, eco: 100, soc: 90, envReason: "Major reduction in car dependence and urban emissions when well used.", ecoReason: "One of the strongest urban productivity multipliers: labor mobility, lower congestion costs, land value uplift.", socReason: "Access to jobs, schools, hospitals; inclusion for low-income and non-drivers." },
+            { id: 50, name: "Women Safety Help Centers", env: 0, eco: 60, soc: 85, envReason: "Mostly neutral direct footprint.", ecoReason: "Higher female workforce participation when safety systems improve mobility confidence.", socReason: "Strong reporting, support, violence prevention, empowerment." },
+            { id: 51, name: "City Parks", env: 90, eco: 60, soc: 90, envReason: "Trees absorb carbon, reduce heat island effect, improve air quality, absorb stormwater, support biodiversity.", ecoReason: "Increase property values; attract vendors; lower healthcare burden; attract skilled workers.", socReason: "Lower stress, better mental health, family recreation, stronger social cohesion." },
+            { id: 52, name: "Pocket Parks", env: 80, eco: 40, soc: 75, envReason: "Shade, localized cooling, rain infiltration, biodiversity stepping stones.", ecoReason: "Raise local neighborhood attractiveness; support small retail; improve micro real-estate demand.", socReason: "Important in crowded cities; resting places for elderly; child play; stress relief." },
+            { id: 53, name: "Urban Forest Recreation Zones", env: 95, eco: 55, soc: 85, envReason: "Very high carbon sequestration, habitat creation, air filtration, noise buffering, stormwater management.", ecoReason: "Reduce cooling-energy demand; improve high-value residential desirability; eco-tourism spending.", socReason: "Quiet restorative spaces, recreation, lower anxiety, stronger community identity." },
+            { id: 54, name: "Riverfront / Lakeside Promenades", env: 75, eco: 80, soc: 80, envReason: "Bank stabilization, habitat restoration, runoff filtering, flood buffering.", ecoReason: "Waterfront regeneration often boosts land values, tourism, events, commercial leasing.", socReason: "Public gathering spaces, walking, recreation, civic pride, safer activated waterfronts." },
+            { id: 55, name: "Public Plazas & Open Spaces", env: 40, eco: 70, soc: 70, envReason: "Moderate if trees/permeable paving used; can worsen heat if concrete-only design.", ecoReason: "Markets, festivals, street vending, public events increase spending and local commerce.", socReason: "Social interaction, democratic gathering, cultural expression, festivals, identity-building." },
+            { id: 56, name: "Community Halls / Civic Centers", env: 5, eco: 50, soc: 75, envReason: "Low-medium operational footprint; can double as resilience assets.", ecoReason: "Rental revenue, weddings, seminars, local service economy, event jobs.", socReason: "Community bonding, clubs, senior programs, public meetings, disaster coordination." },
+            { id: 57, name: "Children’s Playgrounds", env: 20, eco: 45, soc: 80, envReason: "Small green/open-space benefit if landscaped.", ecoReason: "Family-friendly districts attract residents; supports nearby retail like cafés.", socReason: "Child physical development, social skills, outdoor activity, parent interaction." },
+            { id: 58, name: "Sports Complexes & Fitness Parks", env: 20, eco: 75, soc: 80, envReason: "Medium footprint due to lighting/water/land use; lower if efficient design.", ecoReason: "Memberships, jobs, sports events, tournaments, sponsorships, sports tourism.", socReason: "Fitness, youth engagement, discipline, crime diversion through sports participation." },
+            { id: 59, name: "Jogging & Cycling Tracks", env: 75, eco: 75, soc: 75, envReason: "Replaces short car trips, lowers emissions/noise, supports active city model.", ecoReason: "Low-cost transport option reduces fuel spending; boosts corridor retail foot traffic.", socReason: "Better cardiovascular health, lower stress, safe recreation, inclusive mobility." },
+            { id: 60, name: "Childcare / Daycare Centers", env: 0, eco: 90, soc: 90, envReason: "Neutral-low direct footprint.", ecoReason: "Enables parents to work, especially women; raises labor-force participation and household income.", socReason: "Child development, reduced family stress, early learning, work-life balance." },
+            { id: 61, name: "Old Age Care Homes", env: 0, eco: 45, soc: 75, envReason: "Medium footprint due to operations/healthcare needs.", ecoReason: "Creates care-sector jobs; supports medical supply and service ecosystem.", socReason: "Dignity, supervision, companionship, reduced elder neglect and caregiver burnout." },
+            { id: 62, name: "Disabled Access Centers", env: 10, eco: 70, soc: 90, envReason: "Low direct environmental footprint.", ecoReason: "Unlocks employment potential of disabled citizens; improves labor inclusion and productivity.", socReason: "Accessibility, independence, equality, dignity, service access." },
+            { id: 63, name: "Food Banks / Community Kitchens", env: -5, eco: 50, soc: 85, envReason: "Can reduce edible food waste when linked to recovery logistics/cold chain.", ecoReason: "Stabilizes vulnerable households so they remain economically active; reduces crisis costs.", socReason: "Food security, hunger reduction, community solidarity, emergency support." },
+            { id: 64, name: "Disaster Relief Shelters", env: 10, eco: 55, soc: 80, envReason: "Core climate-resilience infrastructure; can be multi-use centers.", ecoReason: "Avoids huge disaster losses, speeds recovery, reduces downtime for local economy.", socReason: "Life-saving refuge during floods/cyclones/earthquakes; protects vulnerable groups." },
+            { id: 65, name: "Citizen Help Centers", env: 0, eco: 60, soc: 70, envReason: "Mostly neutral; digital centers reduce travel/paper use.", ecoReason: "Faster permits, lower bureaucracy costs, easier business setup, higher efficiency.", socReason: "Better trust in government, grievance resolution, access to welfare schemes." }
         ];
 
         const linkages = [
@@ -461,6 +494,34 @@
             document.getElementById('step-2').classList.remove('hidden');
         }
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('app-sidebar');
+            if (sidebar) sidebar.classList.toggle('visible');
+        }
+
+        function showInfraDetail(id) {
+            const item = masterData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('modal-id').innerText = item.id;
+            document.getElementById('modal-title').innerText = item.name;
+            document.getElementById('modal-env-reason').innerText = item.envReason || "Data pending analytical verification.";
+            document.getElementById('modal-eco-reason').innerText = item.ecoReason || "Data pending analytical verification.";
+            document.getElementById('modal-soc-reason').innerText = item.socReason || "Data pending analytical verification.";
+
+            const modal = document.getElementById('infra-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('infra-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
         function addInfrastructure() {
             const input = document.getElementById('infra-id-input');
             const errorRep = document.getElementById('repetition-error');
@@ -500,7 +561,7 @@
             selectedItems.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 tr.className = "workspace-row bg-white rounded-2xl shadow-sm";
-                tr.innerHTML = `<td class="py-5 px-6 font-mono font-black text-slate-300 text-xs">${item.id}</td><td class="py-5 px-6 font-black text-slate-800 text-sm">${item.name}</td><td class="py-5 px-6 text-center text-emerald-500 font-black">${item.env}</td><td class="py-5 px-6 text-center text-amber-500 font-black">${item.eco}</td><td class="py-5 px-6 text-center text-indigo-500 font-black">${item.soc}</td><td class="py-5 px-6 text-right font-black text-slate-900">${item.env + item.eco + item.soc}</td><td class="py-5 px-6 text-right"><button onclick="removeItem(${index})" class="p-2 text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>`;
+                tr.innerHTML = `<td class="py-3 md:py-5 px-4 md:px-6 font-mono font-black text-slate-300 text-xs text-center">${item.id}</td><td class="py-3 md:py-5 px-4 md:px-6 font-black text-slate-800 text-sm">${item.name}</td><td class="py-3 md:py-5 px-4 md:px-6 text-center text-emerald-500 font-black">${item.env}</td><td class="py-3 md:py-5 px-4 md:px-6 text-center text-amber-500 font-black">${item.eco}</td><td class="py-3 md:py-5 px-4 md:px-6 text-center text-indigo-500 font-black">${item.soc}</td><td class="py-3 md:py-5 px-4 md:px-6 text-right font-black text-slate-900">${item.env + item.eco + item.soc}</td><td class="py-3 md:py-5 px-4 md:px-6 text-right"><button onclick="removeItem(${index})" class="p-2 text-rose-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -524,13 +585,13 @@
                 const net = item.env + item.eco + item.soc;
                 sumEnv += item.env; sumEco += item.eco; sumSoc += item.soc;
                 const badge = document.createElement('span');
-                badge.className = "px-4 py-2 bg-slate-900 text-white rounded-xl text-[11px] font-black tracking-tighter shadow-lg shadow-slate-200";
+                badge.className = "px-3 py-1.5 md:px-4 md:py-2 bg-slate-900 text-white rounded-xl text-[10px] md:text-[11px] font-black tracking-tighter shadow-lg shadow-slate-200";
                 badge.innerText = item.id;
                 if (idSummaryDiv) idSummaryDiv.appendChild(badge);
                 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition-colors";
-                tr.innerHTML = `<td class="px-8 py-5 font-black text-slate-300 font-mono text-xs">${item.id}</td><td class="px-8 py-5 font-black text-slate-800">${item.name}</td><td class="px-8 py-5 text-center text-emerald-600 font-black">${item.env}</td><td class="px-8 py-5 text-center text-amber-600 font-black">${item.eco}</td><td class="px-8 py-5 text-center text-indigo-600 font-black">${item.soc}</td><td class="px-8 py-5 text-right font-black text-slate-900">${net}</td>`;
+                tr.innerHTML = `<td class="px-6 md:px-8 py-5 font-black text-slate-300 font-mono text-xs text-center">${item.id}</td><td class="px-6 md:px-8 py-5 font-black text-slate-800">${item.name}</td><td class="px-6 md:px-8 py-5 text-center text-emerald-600 font-black">${item.env}</td><td class="px-6 md:px-8 py-5 text-center text-amber-600 font-black">${item.eco}</td><td class="px-6 md:px-8 py-5 text-center text-indigo-600 font-black">${item.soc}</td><td class="px-6 md:px-8 py-5 text-right font-black text-slate-900">${net}</td>`;
                 if (dashboardTableBody) dashboardTableBody.appendChild(tr);
             });
 
@@ -549,7 +610,7 @@
                 }
             });
 
-            if (activeLinkagesDiv && activeLinkagesDiv.innerHTML === '') activeLinkagesDiv.innerHTML = '<p class="text-sm text-slate-400 col-span-2 italic text-center py-6 border-2 border-dashed border-slate-100 rounded-[1.5rem]">No strategic linkages detected.</p>';
+            if (activeLinkagesDiv && activeLinkagesDiv.innerHTML === '') activeLinkagesDiv.innerHTML = '<p class="text-sm text-slate-400 col-span-2 italic text-center py-6 border-2 border-dashed border-slate-100 rounded-[1.5rem] w-full">No strategic linkages detected.</p>';
 
             const rawTotal = sumEnv + sumEco + sumSoc;
             const totalWithBonus = rawTotal + bonus;
@@ -585,6 +646,7 @@
             populateInfraLibraryGrid();
             populateLibraryGrid();
 
+            document.getElementById('mobile-toggle').classList.add('active');
             document.getElementById('app-sidebar').classList.add('visible');
             document.getElementById('main-container').classList.add('pushed');
             document.getElementById('step-2').classList.add('hidden');
@@ -638,6 +700,10 @@
                 document.getElementById('step-infra-library').classList.remove('hidden');
                 document.getElementById('nav-infra-library').classList.add('active');
             }
+            
+            if (window.innerWidth < 1024) {
+                toggleSidebar();
+            }
         }
 
         function populateLibraryGrid() {
@@ -646,7 +712,7 @@
             grid.innerHTML = '';
             linkages.forEach(l => {
                 const card = document.createElement('div');
-                card.className = "bg-slate-50 p-8 rounded-[2rem] border-2 border-transparent hover:border-emerald-500 hover:bg-white transition-all duration-500";
+                card.className = "bg-slate-50 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border-2 border-transparent hover:border-emerald-500 hover:bg-white transition-all duration-500";
                 card.innerHTML = `<div class="flex justify-between items-start mb-6"><span class="bg-slate-900 text-white text-[9px] px-3 py-1.5 rounded-full font-black uppercase tracking-widest">Synergy Protocol</span><span class="text-emerald-600 font-black text-xs">+25 BONUS</span></div><h4 class="font-black text-slate-900 mb-3 text-lg leading-tight">${l.label}</h4><p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-4">Required Assets:</p><p class="text-xs text-slate-700 leading-relaxed font-bold bg-emerald-50 p-4 rounded-2xl mb-6">${l.parts.join(' + ')}</p><p class="text-[11px] text-slate-400 italic border-t border-slate-100 pt-6 leading-relaxed">${l.benefit}</p>`;
                 grid.appendChild(card);
             });
@@ -658,26 +724,28 @@
             grid.innerHTML = '';
             filteredData.forEach(item => {
                 const card = document.createElement('div');
-                card.className = "infra-card p-6 rounded-[2rem] bg-white";
+                card.className = "infra-card p-6 rounded-[2rem]";
+                card.onclick = () => showInfraDetail(item.id);
                 card.innerHTML = `
                     <div class="flex items-start gap-4 mb-6">
-                        <span class="w-12 h-12 flex items-center justify-center bg-slate-900 text-white text-sm font-black rounded-2xl shrink-0 shadow-lg shadow-slate-200">${item.id}</span>
-                        <h4 class="text-base font-black text-slate-800 leading-tight pt-1">${item.name}</h4>
+                        <span class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-slate-900 text-white text-sm font-black rounded-2xl shrink-0 shadow-lg shadow-slate-200">${item.id}</span>
+                        <h4 class="text-sm md:text-base font-black text-slate-800 leading-tight pt-1">${item.name}</h4>
                     </div>
                     <div class="space-y-4">
                         <div class="space-y-1">
                             <div class="flex justify-between text-[9px] font-black uppercase text-emerald-500 tracking-widest"><span>Environmental</span><span>${item.env}</span></div>
-                            <div class="score-bar"><div class="score-bar-fill bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]" style="width: ${Math.max(0, item.env)}%"></div></div>
+                            <div class="score-bar"><div class="score-bar-fill bg-emerald-400" style="width: ${Math.max(0, item.env)}%"></div></div>
                         </div>
                         <div class="space-y-1">
                             <div class="flex justify-between text-[9px] font-black uppercase text-amber-500 tracking-widest"><span>Economic</span><span>${item.eco}</span></div>
-                            <div class="score-bar"><div class="score-bar-fill bg-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.3)]" style="width: ${Math.max(0, item.eco)}%"></div></div>
+                            <div class="score-bar"><div class="score-bar-fill bg-amber-400" style="width: ${Math.max(0, item.eco)}%"></div></div>
                         </div>
                         <div class="space-y-1">
                             <div class="flex justify-between text-[9px] font-black uppercase text-indigo-500 tracking-widest"><span>Social Impact</span><span>${item.soc}</span></div>
-                            <div class="score-bar"><div class="score-bar-fill bg-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.3)]" style="width: ${Math.max(0, item.soc)}%"></div></div>
+                            <div class="score-bar"><div class="score-bar-fill bg-indigo-400" style="width: ${Math.max(0, item.soc)}%"></div></div>
                         </div>
                     </div>
+                    <p class="mt-4 text-[9px] text-slate-300 font-bold uppercase tracking-widest text-center">Click for Justification</p>
                 `;
                 grid.appendChild(card);
             });
@@ -707,8 +775,10 @@
         function reset() {
             const sidebar = document.getElementById('app-sidebar');
             const main = document.getElementById('main-container');
+            const toggle = document.getElementById('mobile-toggle');
             if (sidebar) sidebar.classList.remove('visible');
             if (main) main.classList.remove('pushed');
+            if (toggle) toggle.classList.remove('active');
             
             document.getElementById('step-3').classList.add('hidden');
             document.getElementById('step-library').classList.add('hidden');
